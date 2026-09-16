@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -23,9 +23,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - uses: android-actions/setup-android@v4
-      - name: Install Android SDK platform
-        run: sdkmanager "platforms;android-37"
+      # GitHub's Ubuntu 24.04 image already provides ANDROID_HOME and API 37.
+      - name: Verify Android SDK platform
+        run: test -f "$ANDROID_HOME/platforms/android-37/android.jar"
       - name: Run unit tests
         run: bash gradlew :shared:jvmTest :spotify:test :app:testReleaseUnitTest --stacktrace
       # The release variant already uses the repository's shared debug keystore.
