@@ -15,7 +15,10 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "spotui"
-include(":app")
 include(":spotify")
-include(":innertube")
- 
+include(":shared")
+// iOS and shared-code checks do not require an Android SDK.
+if (!providers.gradleProperty("sharedOnly").orNull.toBoolean()) {
+    include(":app")
+    include(":innertube")
+}

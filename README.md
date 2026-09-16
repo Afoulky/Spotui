@@ -2,15 +2,46 @@
 
 A Spotify clone for Android, built with Jetpack Compose.
 
-## 💖 Sponsor this project
+## About this fork
 
-If you enjoy using this app and want to support its continued development, consider buying me a coffee! 
+This is an independent fork of [Spotui](https://github.com/H4zh4n/Spotui),
+bringing iOS support and preparing desktop support while retaining the Spotui name.
+It is not an official release from the upstream maintainers.
+
+The first milestone adds shared Kotlin models, an initial iOS app with local
+audio import and playback, and Android/iOS build workflows. The iOS build and
+device behavior still need validation; Spotify login, browsing, and streaming
+are not ported yet. Desktop support is planned but not implemented.
+
+The next priorities are to validate APK and IPA builds, test on an iPhone 6s
+running iOS 15, and port Spotify sign-in, library browsing, search, and playback.
+See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
+and the current limitations.
+
+The project retains its [GNU GPL v3 license](LICENSE) and upstream credits.
+The download badge above links to upstream releases, not builds of this fork.
+
+## CI builds
+
+The **Android APK** GitHub Actions workflow runs on pushes and pull requests,
+and can also be started manually. It runs unit tests and builds the release APK,
+available in the **Spotui-Android-APK** artifact for 14 days. The APK uses the
+existing shared debug signing key configured in the project; no signing secrets
+are required. Extract the downloaded artifact ZIP to install the APK.
+
+Android builds run independently of the **iOS unsigned IPA** workflow, so both
+can run in parallel when the iOS workflow's path filters match the changes.
+The first remote Android build still needs to be validated.
+
+## 💖 Support the upstream project
+
+The original project's sponsorship link is preserved below to support its author.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/hazhan)
 
 _____________
 
-## Features
+## Android features
 
 It connects to your real Spotify account and mirrors the Spotify experience.
 
@@ -41,6 +72,6 @@ spotui builds on the work of several open-source projects:
 This project is for educational purposes only. Spotify is a trademark of Spotify AB.
 
 
-### 🌟 What's Different in This Fork?
-This fork includes a completely overhauled lossless audio engine, offline caching, and various UI improvements over the main project.
+### 🌟 Inherited Android improvements
+The Android codebase includes an overhauled lossless audio engine, offline caching, and various UI improvements documented before this fork's iOS work.
 ➡️ **[Click here to read the full list of features and differences](CHANGELOG.md)**

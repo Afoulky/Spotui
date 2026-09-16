@@ -97,7 +97,7 @@ object SpotifyWebPlayer {
         }
         try {
             // Lets `chrome://inspect` attach to the hidden player for diagnosis.
-            WebView.setWebContentsDebuggingEnabled(true)
+            WebView.setWebContentsDebuggingEnabled(com.music.spotui.BuildConfig.DEBUG)
             val wv = WebView(activity)
             wv.settings.apply {
                 javaScriptEnabled = true

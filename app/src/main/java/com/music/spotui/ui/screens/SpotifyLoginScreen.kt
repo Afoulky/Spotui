@@ -112,7 +112,7 @@ fun SpotifyLoginScreen(navController: NavController) {
 
     // Enable WebView debugging for dev inspection
     LaunchedEffect(Unit) {
-        WebView.setWebContentsDebuggingEnabled(true)
+        WebView.setWebContentsDebuggingEnabled(com.music.spotui.BuildConfig.DEBUG)
     }
 
     // Poll for the sp_dc cookie across Spotify domains
@@ -207,7 +207,11 @@ fun SpotifyLoginScreen(navController: NavController) {
                             error: android.net.http.SslError?,
                         ) {
                             Timber.w("SpotifyLogin onReceivedSslError: $error")
-                            handler?.proceed()
+                            // Never send session cookies over a connection with an invalid certificate.
+                            handler?.cancel()
+                            isLoadingPage = false
+                            pageErrorMessage = "Secure connection failed. Please check your network and device date."
+                            hasPageError = true
                         }
 
                         override fun onReceivedError(

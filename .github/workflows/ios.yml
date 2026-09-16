@@ -1,0 +1,68 @@
+name: iOS unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'shared/**'
+      - 'spotify/**'
+      - 'iosApp/**'
+      - 'scripts/build-ios.sh'
+      - '*gradle*'
+      - 'gradle/**'
+      - '.github/workflows/ios.yml'
+  pull_request:
+    paths:
+      - 'shared/**'
+      - 'spotify/**'
+      - 'iosApp/**'
+      - 'scripts/build-ios.sh'
+      - '*gradle*'
+      - 'gradle/**'
+      - '.github/workflows/ios.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Shared models and existing Spotify regression tests
+        run: bash gradlew -PsharedOnly=true :shared:jvmTest :spotify:test --stacktrace
+
+  ipa:
+    needs: shared-tests
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Test shared code on the iOS simulator
+        run: bash gradlew -PsharedOnly=true :shared:iosSimulatorArm64Test --stacktrace
+      - name: Compile and package unsigned device app
+        run: bash scripts/build-ios.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Spotui-iOS-unsigned
+          path: build/ios/Spotui-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

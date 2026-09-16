@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$(uname -s)" != Darwin ]]; then
+    echo "iOS compilation requires macOS and Xcode. Use the 'iOS unsigned IPA' GitHub Actions workflow." >&2
+    exit 1
+fi
+
+if ! command -v xcodegen >/dev/null; then
+    echo "Install XcodeGen with: brew install xcodegen" >&2
+    exit 1
+fi
+xcodebuild -version
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+output_dir="$repo_root/build/ios"
+mkdir -p "$output_dir"
+xcodegen generate --spec "$repo_root/iosApp/project.yml" --project "$repo_root/iosApp"
+
+# Build for real devices, without requesting Apple credentials or provisioning.
+# A static Kotlin framework is linked into the executable by Xcode.
+xcodebuild \
+    -project "$repo_root/iosApp/Spotui.xcodeproj" \
+    -scheme Spotui \
+    -configuration Release \
+    -sdk iphoneos \
+    -destination 'generic/platform=iOS' \
+    -derivedDataPath "$output_dir/DerivedData" \
+    CODE_SIGNING_ALLOWED=NO \
+    CODE_SIGNING_REQUIRED=NO \
+    CODE_SIGN_IDENTITY= \
+    build
+
+app_path="$output_dir/DerivedData/Build/Products/Release-iphoneos/Spotui.app"
+test -f "$app_path/Spotui"
+# Use a fresh staging directory: stale files must never leak into an IPA.
+staging_dir="$(mktemp -d "$output_dir/package.XXXXXX")"
+trap 'rm -rf "$staging_dir"' EXIT
+mkdir "$staging_dir/Payload"
+ditto "$app_path" "$staging_dir/Payload/Spotui.app"
+(cd "$staging_dir" && /usr/bin/zip -qry Spotui-unsigned.ipa Payload)
+mv "$staging_dir/Spotui-unsigned.ipa" "$output_dir/Spotui-unsigned.ipa"
+echo "Unsigned IPA: $output_dir/Spotui-unsigned.ipa"
