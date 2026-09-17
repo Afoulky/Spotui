@@ -20,6 +20,7 @@
             <array><string>public.audio</string></array>
         </dict>
     </array>
+    <key>LSSupportsOpeningDocumentsInPlace</key><false/>
     <key>LSRequiresIPhoneOS</key><true/>
     <key>UILaunchScreen</key><dict/>
     <key>UIBackgroundModes</key><array><string>audio</string></array>

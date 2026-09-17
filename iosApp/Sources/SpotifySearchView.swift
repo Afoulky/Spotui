@@ -49,10 +49,9 @@ struct SpotifySearchView: View {
             }
             .navigationTitle("Spotify")
             .toolbar {
-                if session.isSignedIn {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Sign out") { session.signOut() }
-                    }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Sign out") { session.signOut() }
+                        .disabled(!session.isSignedIn)
                 }
             }
             .sheet(isPresented: $showLogin) { SpotifyWebLogin(session: session) }
