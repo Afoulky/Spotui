@@ -38,7 +38,7 @@ final class SoundCloudAudioProvider {
             guard let title = candidate["title"] as? String,
                   let user = candidate["user"] as? [String: Any] else { return nil }
             let candidateArtist = (user["username"] as? String) ?? (user["full_name"] as? String) ?? ""
-            let score = matchScore(
+            let score = ProviderTrackMatcher.score(
                 wantedTitle: track.name, wantedArtist: track.artist,
                 candidateTitle: title, candidateArtist: candidateArtist
             )
@@ -110,26 +110,4 @@ final class SoundCloudAudioProvider {
         return data
     }
 
-    private func matchScore(
-        wantedTitle: String, wantedArtist: String, candidateTitle: String, candidateArtist: String
-    ) -> Int {
-        let title = normalized(wantedTitle)
-        let candidate = normalized(candidateTitle)
-        let artist = normalized(wantedArtist.components(separatedBy: ",").first ?? wantedArtist)
-        let uploader = normalized(candidateArtist)
-        guard !title.isEmpty, !artist.isEmpty else { return 0 }
-        let titleScore: Int
-        if candidate == title { titleScore = 110 }
-        else if candidate.contains(title) { titleScore = 62 }
-        else { return 0 }
-        guard uploader.contains(artist) || candidate.contains(artist) else { return 0 }
-        return titleScore + 38
-    }
-
-    private func normalized(_ value: String) -> String {
-        value.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            .lowercased()
-            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespaces)
-    }
 }

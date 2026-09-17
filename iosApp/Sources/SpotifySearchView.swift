@@ -7,7 +7,7 @@ struct SpotifySearchView: View {
     @State private var showLogin = false
     @State private var selectedSection = 0
     @State private var isResolving = false
-    @State private var provider = SoundCloudAudioProvider()
+    @State private var resolver = AudioSourceResolver()
 
     var body: some View {
         NavigationView {
@@ -32,7 +32,7 @@ struct SpotifySearchView: View {
                     .pickerStyle(.segmented)
                     .padding()
                     if selectedSection == 1 {
-                        SpotifyPlaylistsView(session: session, playback: playback, provider: provider)
+                        SpotifyPlaylistsView(session: session, playback: playback, resolver: resolver)
                     } else {
                         HStack {
                             TextField("Songs or artists", text: $query)
@@ -64,7 +64,8 @@ struct SpotifySearchView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(track.name).font(.headline).lineLimit(1)
-                            Text(track.artist).font(.caption).foregroundColor(.secondary).lineLimit(1)
+                            Text("\(track.artist) · \(playback.currentProvider ?? "")")
+                                .font(.caption).foregroundColor(.secondary).lineLimit(1)
                         }
                         Spacer()
                         Button(action: playback.toggle) {
@@ -114,8 +115,8 @@ struct SpotifySearchView: View {
         Task {
             defer { isResolving = false }
             do {
-                let url = try await provider.resolve(track)
-                playback.playRemote(track, from: url)
+                let source = try await resolver.resolve(track)
+                playback.playRemote(track, from: source)
             } catch {
                 session.errorMessage = error.localizedDescription
             }
@@ -126,13 +127,13 @@ struct SpotifySearchView: View {
 private struct SpotifyPlaylistsView: View {
     @ObservedObject var session: SpotifySession
     @ObservedObject var playback: LocalPlayback
-    let provider: SoundCloudAudioProvider
+    let resolver: AudioSourceResolver
 
     var body: some View {
         List {
             ForEach(session.playlists) { playlist in
                 NavigationLink(destination: SpotifyPlaylistDetailView(
-                    session: session, playback: playback, provider: provider, playlist: playlist
+                    session: session, playback: playback, resolver: resolver, playlist: playlist
                 )) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(playlist.name).font(.headline)
@@ -163,7 +164,7 @@ private struct SpotifyPlaylistsView: View {
 private struct SpotifyPlaylistDetailView: View {
     @ObservedObject var session: SpotifySession
     @ObservedObject var playback: LocalPlayback
-    let provider: SoundCloudAudioProvider
+    let resolver: AudioSourceResolver
     let playlist: SpotifyPlaylist
     @State private var tracks: [SpotifySearchTrack] = []
     @State private var errorMessage: String?
@@ -206,7 +207,11 @@ private struct SpotifyPlaylistDetailView: View {
         .safeAreaInset(edge: .bottom) {
             if let current = playback.currentRemote {
                 HStack {
-                    Text(current.name).lineLimit(1)
+                    VStack(alignment: .leading) {
+                        Text(current.name).lineLimit(1)
+                        Text(playback.currentProvider ?? "")
+                            .font(.caption).foregroundColor(.secondary)
+                    }
                     Spacer()
                     Button(action: playback.toggle) {
                         Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
@@ -247,8 +252,8 @@ private struct SpotifyPlaylistDetailView: View {
         Task {
             defer { isResolving = false }
             do {
-                let url = try await provider.resolve(track)
-                playback.playRemote(track, from: url)
+                let source = try await resolver.resolve(track)
+                playback.playRemote(track, from: source)
             } catch {
                 playbackErrorMessage = error.localizedDescription
             }

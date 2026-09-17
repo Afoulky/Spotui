@@ -3,7 +3,7 @@
 ## Current status
 
 This first milestone lays the groundwork for the port. It does not yet provide
-feature parity with Android: full library browsing and Android's provider
+feature parity with Android: full library browsing and Android's full provider
 fallback chain are not available on iOS. Sign-in, track search, playlist
 browsing, and loading more than 50 tracks work on the test device.
 
@@ -23,10 +23,10 @@ Implemented:
 - A playlist browser with pagination for both playlists and tracks. It uses
   Android's `libraryV3` and `fetchPlaylist` queries. Browsing playlists and
   loading additional track pages work on the iPhone.
-- An initial playback path that matches Spotify track metadata to a SoundCloud
-  recording and plays its resolved audio URL with AVPlayer. Spotify provides
+- An initial playback path that tries a matching Qobuz MP3, then a SoundCloud
+  recording, and plays the resolved audio URL with AVPlayer. Spotify provides
   metadata, not audio. This path still needs a remote build and device test;
-  matching can fail, and other providers are not connected yet.
+  matching can fail, and Android's other providers are not connected yet.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -144,10 +144,10 @@ replace testing on this physical device.
 8. Open **Playlists** on the Spotify tab, load additional playlists, then open
    one with more than 50 tracks and tap **Load more tracks**. Check that the
    next page appears without duplicates.
-9. Select a track from search or a playlist. Check that the resolved SoundCloud
-   audio matches the Spotify title and artist, that pause/resume works, and that
-   the lock-screen controls display the Spotify metadata. Some tracks may not
-   have a reliable SoundCloud match.
+9. Select a track from search or a playlist. Check that the resolved Qobuz or
+   SoundCloud audio matches the Spotify title and artist, that pause/resume
+   works, and that the lock-screen controls display the Spotify metadata. Some
+   tracks may not have a reliable match from either provider.
 
 ## Development
 
@@ -196,9 +196,12 @@ The workflow selects Xcode 26.4.
    behavior may change.
 2. Share repositories and screen state, then migrate the remaining library browsing and
    search presentation to Compose Multiplatform.
-3. Validate SoundCloud resolution and playback, then add provider fallback.
-   The YouTube/NewPipe engine, decryption, and lossless providers each require
-   adaptation; none is active in this initial version.
+3. Validate Qobuz and SoundCloud resolution and playback. Move provider order,
+   metadata matching, and stream resolution into `shared` so Android, iOS, and
+   the future desktop app use the same rules. The existing Android providers
+   depend on Android APIs, OkHttp, and Media3, so they need platform adapters
+   before they can be shared. Add the remaining providers afterward; YouTube/
+   NewPipe, decryption, and lossless playback each require adaptation.
 4. Add downloads, lyrics, and feature parity, then desktop support.
 
 ## References

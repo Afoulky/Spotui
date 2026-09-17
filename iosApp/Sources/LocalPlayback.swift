@@ -10,6 +10,7 @@ final class LocalPlayback: ObservableObject {
     @Published private(set) var tracks: [SpotifyTrack] = []
     @Published private(set) var current: SpotifyTrack?
     @Published private(set) var currentRemote: SpotifySearchTrack?
+    @Published private(set) var currentProvider: String?
     @Published private(set) var isPlaying = false
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
@@ -166,13 +167,15 @@ final class LocalPlayback: ObservableObject {
         guard let uri = track.uri, let url = URL(string: uri), url.isFileURL else { return }
         current = track
         currentRemote = nil
+        currentProvider = nil
         replaceItem(with: url)
     }
 
-    func playRemote(_ track: SpotifySearchTrack, from url: URL) {
+    func playRemote(_ track: SpotifySearchTrack, from source: ResolvedAudioSource) {
         current = nil
         currentRemote = track
-        replaceItem(with: url)
+        currentProvider = source.provider
+        replaceItem(with: source.url)
     }
 
     func stopRemote() {
@@ -180,6 +183,7 @@ final class LocalPlayback: ObservableObject {
         pause()
         player.replaceCurrentItem(with: nil)
         currentRemote = nil
+        currentProvider = nil
         position = 0
         duration = 0
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
