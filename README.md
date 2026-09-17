@@ -26,15 +26,29 @@ The download badge above links to upstream releases, not builds of this fork.
 
 ## CI builds
 
-The **Android APK** GitHub Actions workflow runs on pushes and pull requests,
-and can also be started manually. It runs unit tests and builds the release APK,
+The **Android APK** workflow runs when an `android-v*` tag is pushed, while the
+**iOS unsigned IPA** workflow runs when an `ios-v*` tag is pushed. Neither runs
+on ordinary branch pushes or pull requests. Both can also be started manually
+from the Actions tab once the workflows are present on the default branch.
+
+To build only one platform from a particular commit, tag that commit and push
+the tag (use a new tag name for each build):
+
+```sh
+git tag android-v0.1.0-test1
+git push origin android-v0.1.0-test1
+# Or, for iOS:
+git tag ios-v0.1.0-test1
+git push origin ios-v0.1.0-test1
+```
+
+The Android workflow runs unit tests and builds the release APK,
 available in the **Spotui-Android-APK** artifact for 14 days. The APK uses the
 existing shared debug signing key configured in the project; no signing secrets
 are required. Extract the downloaded artifact ZIP to install the APK.
 
-Android builds run independently of the **iOS unsigned IPA** workflow, so both
-can run in parallel when the iOS workflow's path filters match the changes.
-The first remote Android build still needs to be validated.
+The workflows run independently; push both kinds of tag at the same commit to
+build both platforms. The first remote Android build still needs to be validated.
 
 ## 💖 Support the upstream project
 

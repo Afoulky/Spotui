@@ -47,9 +47,16 @@ macOS, and Linux. GitHub runs the build on a hosted macOS runner, so you do not
 need Xcode or a local Mac to use this workflow.
 
 1. Push these changes to your GitHub repository with Actions enabled.
-2. Open **Actions → iOS unsigned IPA**. A push affecting the relevant files
-   triggers a build. **Run workflow** also allows manual runs once the workflow
-   is present on the default branch.
+2. Create a unique iOS tag on the commit you want to build, then push the tag:
+
+   ```sh
+   git tag ios-v0.1.0-test1
+   git push origin ios-v0.1.0-test1
+   ```
+
+   Only tags matching `ios-v*` start this workflow; ordinary branch pushes and
+   pull requests do not. **Run workflow** in **Actions → iOS unsigned IPA** also
+   allows manual runs once the workflow is present on the default branch.
 3. Wait for both jobs to succeed. Download the **Spotui-iOS-unsigned** artifact.
 4. Extract the downloaded ZIP to obtain **Spotui-unsigned.ipa**.
 5. Save the IPA in Files on your test iPhone or iPad, then follow the

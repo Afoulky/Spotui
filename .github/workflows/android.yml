@@ -3,7 +3,8 @@ name: Android APK
 on:
   workflow_dispatch:
   push:
-  pull_request:
+    tags:
+      - 'android-v*'
 
 permissions:
   contents: read

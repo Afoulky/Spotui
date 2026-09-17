@@ -3,23 +3,8 @@ name: iOS unsigned IPA
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'shared/**'
-      - 'spotify/**'
-      - 'iosApp/**'
-      - 'scripts/build-ios.sh'
-      - '*gradle*'
-      - 'gradle/**'
-      - '.github/workflows/ios.yml'
-  pull_request:
-    paths:
-      - 'shared/**'
-      - 'spotify/**'
-      - 'iosApp/**'
-      - 'scripts/build-ios.sh'
-      - '*gradle*'
-      - 'gradle/**'
-      - '.github/workflows/ios.yml'
+    tags:
+      - 'ios-v*'
 
 permissions:
   contents: read
