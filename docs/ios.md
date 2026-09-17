@@ -37,8 +37,10 @@ controls work inside LiveContainer after enabling its **Fix File Picker** settin
 for Spotui. Headphone disconnection, interruption recovery, and file persistence
 still need device validation. The Android workflow has not yet produced a
 validated APK.
-Spotify sign-in and track search have been tested on the iPhone. Session
-restoration after relaunch and sign-out still need device validation.
+Spotify sign-in, track search, session restoration after relaunch, and signing
+out have been tested on the iPhone. After sign-out, the web login could reuse
+its own session; the login view now uses an isolated temporary data store and
+still needs device validation.
 
 ## Producing the IPA with GitHub Actions
 
@@ -174,8 +176,8 @@ The workflow selects Xcode 26.4.
 
 ## Next steps
 
-1. Validate session restoration and sign-out, then harden iOS Spotify sign-in
-   and track search. The initial native implementation duplicates Android's
+1. Validate the isolated login view after sign-out, then harden iOS Spotify
+   sign-in and track search. The initial native implementation duplicates Android's
    token and search protocol; move that protocol into shared code. Spotify's
    internal endpoints and WebKit login behavior may change.
 2. Share repositories and screen state, then migrate library browsing and

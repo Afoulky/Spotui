@@ -16,7 +16,7 @@ tested on the device. Spotify track streaming and library browsing are not
 ported yet. Desktop support is planned but not implemented.
 
 The next priorities are to port library browsing and remote playback, verify
-session restoration and sign-out, and validate the Android APK.
+the isolated web login after sign-out, and validate the Android APK.
 See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
 and the current limitations.
 

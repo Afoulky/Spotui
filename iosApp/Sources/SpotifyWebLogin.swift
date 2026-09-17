@@ -56,7 +56,10 @@ private struct SpotifyLoginBrowser: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onCookie: onCookie) }
 
     func makeUIView(context: Context) -> WKWebView {
-        let view = WKWebView(frame: .zero)
+        // Keep each login attempt isolated from earlier Spotify web sessions.
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = .nonPersistent()
+        let view = WKWebView(frame: .zero, configuration: configuration)
         view.navigationDelegate = context.coordinator
         view.load(URLRequest(url: URL(string: "https://accounts.spotify.com/en/login")!))
         return view
