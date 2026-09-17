@@ -11,6 +11,12 @@ struct SpotifySearchTrack: Identifiable {
     let album: String
 }
 
+struct SpotifyPlaylist: Identifiable {
+    let id: String
+    let name: String
+    let owner: String
+}
+
 private enum SpotifyRequestError: LocalizedError {
     case invalidResponse(String)
     case http(Int)
@@ -31,15 +37,20 @@ final class SpotifySession: ObservableObject {
     @Published private(set) var isSignedIn = false
     @Published private(set) var isBusy = false
     @Published private(set) var results: [SpotifySearchTrack] = []
+    @Published private(set) var playlists: [SpotifyPlaylist] = []
+    @Published private(set) var hasMorePlaylists = false
     @Published var errorMessage: String?
 
     private static let keychainService = "com.music.spotui.ios.spotify"
     private static let searchHash = "4801118d4a100f756e833d33984436a3899cff359c532f8fd3aaf174b60b3b49"
+    private static let libraryHash = "973e511ca44261fda7eebac8b653155e7caee3675abb4fb110cc1b8c78b091c3"
+    private static let playlistHash = "346811f856fb0b7e4f6c59f8ebea78dd081c6e2fb01b77c954b26259d5fc6763"
     private static let desktopUserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     private var cookie: String?
     private var accessToken: String?
     private var tokenExpiresAt = Date.distantPast
+    private var playlistOffset = 0
 
     init() {
         cookie = Self.readCookie()
@@ -79,6 +90,9 @@ final class SpotifySession: ObservableObject {
         accessToken = nil
         tokenExpiresAt = .distantPast
         results = []
+        playlists = []
+        hasMorePlaylists = false
+        playlistOffset = 0
         isSignedIn = false
         errorMessage = nil
     }
@@ -89,25 +103,58 @@ final class SpotifySession: ObservableObject {
             results = []
             return
         }
-        guard let cookie else { return }
+        guard cookie != nil else { return }
         isBusy = true
         defer { isBusy = false }
         do {
-            if accessToken == nil || tokenExpiresAt <= Date().addingTimeInterval(60) {
-                let token = try await Self.fetchToken(cookie: cookie)
-                accessToken = token.value
-                tokenExpiresAt = token.expiresAt
-            }
-            guard let accessToken else { return }
-            results = try await Self.searchTracks(term, token: accessToken)
+            let token = try await validToken()
+            results = try await Self.searchTracks(term, token: token)
             errorMessage = nil
         } catch {
-            if let requestError = error as? SpotifyRequestError,
-               case .expiredSession = requestError {
-                signOut()
-            }
-            errorMessage = error.localizedDescription
+            handleRequestError(error)
         }
+    }
+
+    func loadPlaylists(reset: Bool = false) async {
+        guard cookie != nil, !isBusy else { return }
+        if !reset && !playlists.isEmpty && !hasMorePlaylists { return }
+        isBusy = true
+        defer { isBusy = false }
+        do {
+            let token = try await validToken()
+            let offset = reset ? 0 : playlistOffset
+            let page = try await Self.fetchPlaylists(token: token, offset: offset)
+            playlists = reset ? page.items : playlists + page.items
+            playlistOffset = offset + page.receivedCount
+            hasMorePlaylists = playlistOffset < page.total && page.receivedCount > 0
+            errorMessage = nil
+        } catch {
+            handleRequestError(error)
+        }
+    }
+
+    func tracks(in playlist: SpotifyPlaylist) async throws -> [SpotifySearchTrack] {
+        let token = try await validToken()
+        return try await Self.fetchPlaylistTracks(id: playlist.id, token: token)
+    }
+
+    private func validToken() async throws -> String {
+        guard let cookie else { throw SpotifyRequestError.expiredSession }
+        if accessToken == nil || tokenExpiresAt <= Date().addingTimeInterval(60) {
+            let token = try await Self.fetchToken(cookie: cookie)
+            accessToken = token.value
+            tokenExpiresAt = token.expiresAt
+        }
+        guard let accessToken else { throw SpotifyRequestError.expiredSession }
+        return accessToken
+    }
+
+    private func handleRequestError(_ error: Error) {
+        if let requestError = error as? SpotifyRequestError,
+           case .expiredSession = requestError {
+            signOut()
+        }
+        errorMessage = error.localizedDescription
     }
 
     private static func request(_ url: URL, cookie: String? = nil) async throws -> Data {
@@ -206,9 +253,37 @@ final class SpotifySession: ObservableObject {
             "includePreReleases": false, "includeLocalConcertsField": false,
             "includeAuthors": false
         ]
+        let object = try await graphQL(
+            operation: "searchDesktop", hash: searchHash, variables: variables, token: token
+        )
+        guard let dataObject = object["data"] as? [String: Any],
+              let search = dataObject["searchV2"] as? [String: Any],
+              let section = search["tracksV2"] as? [String: Any],
+              let items = section["items"] as? [[String: Any]] else {
+            throw SpotifyRequestError.invalidResponse("search results")
+        }
+        return items.compactMap { item in
+            guard let wrapper = item["item"] as? [String: Any],
+                  let track = wrapper["data"] as? [String: Any],
+                  let name = track["name"] as? String else { return nil }
+            let uri = (wrapper["_uri"] as? String) ?? (wrapper["uri"] as? String)
+                ?? (track["uri"] as? String) ?? ""
+            guard uri.hasPrefix("spotify:track:") else { return nil }
+            let artistSection = track["artists"] as? [String: Any]
+            let artists = artistSection?["items"] as? [[String: Any]] ?? []
+            let artist = artists.compactMap { $0["profile"] as? [String: Any] }
+                .compactMap { $0["name"] as? String }.joined(separator: ", ")
+            let album = (track["albumOfTrack"] as? [String: Any])?["name"] as? String ?? ""
+            return SpotifySearchTrack(id: uri, name: name, artist: artist, album: album)
+        }
+    }
+
+    private static func graphQL(
+        operation: String, hash: String, variables: [String: Any], token: String
+    ) async throws -> [String: Any] {
         let body: [String: Any] = [
-            "operationName": "searchDesktop", "variables": variables,
-            "extensions": ["persistedQuery": ["version": 1, "sha256Hash": searchHash]]
+            "operationName": operation, "variables": variables,
+            "extensions": ["persistedQuery": ["version": 1, "sha256Hash": hash]]
         ]
         var request = URLRequest(url: URL(string: "https://api-partner.spotify.com/pathfinder/v2/query")!)
         request.httpMethod = "POST"
@@ -229,23 +304,76 @@ final class SpotifySession: ObservableObject {
             throw SpotifyRequestError.http(response.statusCode)
         }
         let object = try jsonObject(data)
-        guard let dataObject = object["data"] as? [String: Any],
-              let search = dataObject["searchV2"] as? [String: Any],
-              let section = search["tracksV2"] as? [String: Any],
-              let items = section["items"] as? [[String: Any]] else {
-            throw SpotifyRequestError.invalidResponse("search results")
+        if let errors = object["errors"] as? [[String: Any]],
+           let message = errors.first?["message"] as? String {
+            throw SpotifyRequestError.invalidResponse(message)
         }
-        return items.compactMap { item in
-            guard let wrapper = item["item"] as? [String: Any],
+        return object
+    }
+
+    private static func fetchPlaylists(
+        token: String, offset: Int
+    ) async throws -> (items: [SpotifyPlaylist], total: Int, receivedCount: Int) {
+        let variables: [String: Any] = [
+            "filters": ["Playlists"], "order": NSNull(), "textFilter": "",
+            "features": ["LIKED_SONGS", "YOUR_EPISODES_V2", "PRERELEASES", "EVENTS"],
+            "limit": 50, "offset": offset, "flatten": true,
+            "expandedFolders": [String](), "folderUri": NSNull(),
+            "includeFoldersWhenFlattening": false
+        ]
+        let object = try await graphQL(
+            operation: "libraryV3", hash: libraryHash, variables: variables, token: token
+        )
+        guard let data = object["data"] as? [String: Any],
+              let me = data["me"] as? [String: Any],
+              let library = me["libraryV3"] as? [String: Any],
+              let rawItems = library["items"] as? [[String: Any]] else {
+            throw SpotifyRequestError.invalidResponse("library playlists")
+        }
+        let items = rawItems.compactMap { element -> SpotifyPlaylist? in
+            guard let wrapper = element["item"] as? [String: Any],
+                  let type = wrapper["__typename"] as? String,
+                  type.contains("Playlist"),
+                  let uri = wrapper["_uri"] as? String,
+                  uri.hasPrefix("spotify:playlist:"),
+                  let info = wrapper["data"] as? [String: Any],
+                  info["__typename"] as? String == "Playlist" else { return nil }
+            let owner = (info["ownerV2"] as? [String: Any])?["data"] as? [String: Any]
+            return SpotifyPlaylist(
+                id: String(uri.dropFirst("spotify:playlist:".count)),
+                name: info["name"] as? String ?? "Untitled playlist",
+                owner: owner?["name"] as? String ?? ""
+            )
+        }
+        return (items, library["totalCount"] as? Int ?? rawItems.count, rawItems.count)
+    }
+
+    private static func fetchPlaylistTracks(
+        id: String, token: String
+    ) async throws -> [SpotifySearchTrack] {
+        let variables: [String: Any] = [
+            "uri": "spotify:playlist:\(id)", "offset": 0, "limit": 50,
+            "enableWatchFeedEntrypoint": false
+        ]
+        let object = try await graphQL(
+            operation: "fetchPlaylist", hash: playlistHash, variables: variables, token: token
+        )
+        guard let data = object["data"] as? [String: Any],
+              let playlist = data["playlistV2"] as? [String: Any],
+              let content = playlist["content"] as? [String: Any],
+              let items = content["items"] as? [[String: Any]] else {
+            throw SpotifyRequestError.invalidResponse("playlist tracks")
+        }
+        return items.compactMap { element in
+            guard let wrapper = element["itemV2"] as? [String: Any],
                   let track = wrapper["data"] as? [String: Any],
                   let name = track["name"] as? String else { return nil }
             let uri = (wrapper["_uri"] as? String) ?? (wrapper["uri"] as? String)
                 ?? (track["uri"] as? String) ?? ""
             guard uri.hasPrefix("spotify:track:") else { return nil }
-            let artistSection = track["artists"] as? [String: Any]
-            let artists = artistSection?["items"] as? [[String: Any]] ?? []
-            let artist = artists.compactMap { $0["profile"] as? [String: Any] }
-                .compactMap { $0["name"] as? String }.joined(separator: ", ")
+            let artists = (track["artists"] as? [String: Any])?["items"] as? [[String: Any]] ?? []
+            let artist = artists.compactMap { ($0["profile"] as? [String: Any])?["name"] as? String }
+                .joined(separator: ", ")
             let album = (track["albumOfTrack"] as? [String: Any])?["name"] as? String ?? ""
             return SpotifySearchTrack(id: uri, name: name, artist: artist, album: album)
         }

@@ -3,8 +3,9 @@
 ## Current status
 
 This first milestone lays the groundwork for the port. It does not yet provide
-feature parity with Android: Spotify track playback and library browsing are
-not available on iOS. Sign-in and track search work on the test device.
+feature parity with Android: Spotify track playback and full library browsing
+are not available on iOS. Sign-in and track search work on the test device;
+playlist browsing has been implemented but awaits device validation.
 
 Implemented:
 
@@ -19,6 +20,9 @@ Implemented:
   token and persisted-query protocol as Android, stores the session cookie in
   iOS Keychain, and keeps access tokens in memory. Sign-in and track search
   have been tested on the iPhone 6s; Spotify's internal endpoints may change.
+- A playlist browser with pagination and a view of the first 50 tracks in each
+  playlist. It uses Android's `libraryV3` and `fetchPlaylist` queries and still
+  needs a remote build and device test. Spotify tracks cannot be played yet.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -38,9 +42,8 @@ for Spotui. Headphone disconnection, interruption recovery, and file persistence
 still need device validation. The Android workflow has not yet produced a
 validated APK.
 Spotify sign-in, track search, session restoration after relaunch, and signing
-out have been tested on the iPhone. After sign-out, the web login could reuse
-its own session; the login view now uses an isolated temporary data store and
-still needs device validation.
+out have been tested on the iPhone. The isolated temporary web login has also
+been confirmed to require a new login after signing out.
 
 ## Producing the IPA with GitHub Actions
 
@@ -134,6 +137,9 @@ replace testing on this physical device.
    complete, the manual `sp_dc` field is a fallback. Verify that signing out
    removes the session and that a relaunch restores a saved session. Search
    results display metadata only; selecting a Spotify track cannot play it yet.
+8. Open **Playlists** on the Spotify tab, load additional pages, then open a
+   playlist to check its first 50 tracks. Spotify track playback is not yet
+   available.
 
 ## Development
 
@@ -176,11 +182,11 @@ The workflow selects Xcode 26.4.
 
 ## Next steps
 
-1. Validate the isolated login view after sign-out, then harden iOS Spotify
-   sign-in and track search. The initial native implementation duplicates Android's
+1. Validate playlist browsing on device, then harden iOS Spotify sign-in and
+   track search. The initial native implementation duplicates Android's
    token and search protocol; move that protocol into shared code. Spotify's
    internal endpoints and WebKit login behavior may change.
-2. Share repositories and screen state, then migrate library browsing and
+2. Share repositories and screen state, then migrate the remaining library browsing and
    search presentation to Compose Multiplatform.
 3. Port stream resolution and connect remote tracks to the iOS player.
    The YouTube/NewPipe engine, decryption, and lossless providers each require
