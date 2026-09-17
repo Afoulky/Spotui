@@ -3,9 +3,9 @@
 ## Current status
 
 This first milestone lays the groundwork for the port. It does not yet provide
-feature parity with Android: Spotify track playback and full library browsing
-are not available on iOS. Sign-in, track search, playlist browsing, and loading
-more than 50 tracks from a playlist work on the test device.
+feature parity with Android: full library browsing and Android's provider
+fallback chain are not available on iOS. Sign-in, track search, playlist
+browsing, and loading more than 50 tracks work on the test device.
 
 Implemented:
 
@@ -22,8 +22,11 @@ Implemented:
   have been tested on the iPhone 6s; Spotify's internal endpoints may change.
 - A playlist browser with pagination for both playlists and tracks. It uses
   Android's `libraryV3` and `fetchPlaylist` queries. Browsing playlists and
-  loading additional track pages work on the iPhone. Spotify tracks cannot be
-  played yet.
+  loading additional track pages work on the iPhone.
+- An initial playback path that matches Spotify track metadata to a SoundCloud
+  recording and plays its resolved audio URL with AVPlayer. Spotify provides
+  metadata, not audio. This path still needs a remote build and device test;
+  matching can fail, and other providers are not connected yet.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -137,11 +140,14 @@ replace testing on this physical device.
 7. On the Spotify tab, test web sign-in and search. If the web login cannot
    complete, the manual `sp_dc` field is a fallback. Verify that signing out
    removes the session and that a relaunch restores a saved session. Search
-   results display metadata only; selecting a Spotify track cannot play it yet.
+   results use Spotify metadata; audio is resolved through another provider.
 8. Open **Playlists** on the Spotify tab, load additional playlists, then open
    one with more than 50 tracks and tap **Load more tracks**. Check that the
-   next page appears without duplicates. Spotify track playback is not yet
-   available.
+   next page appears without duplicates.
+9. Select a track from search or a playlist. Check that the resolved SoundCloud
+   audio matches the Spotify title and artist, that pause/resume works, and that
+   the lock-screen controls display the Spotify metadata. Some tracks may not
+   have a reliable SoundCloud match.
 
 ## Development
 
@@ -186,11 +192,11 @@ The workflow selects Xcode 26.4.
 
 1. Harden iOS Spotify sign-in and track search. The initial native
    implementation duplicates Android's token and search protocol; move that
-   protocol into shared code. Spotify's
-   internal endpoints and WebKit login behavior may change.
+   protocol into shared code. Spotify's internal endpoints and WebKit login
+   behavior may change.
 2. Share repositories and screen state, then migrate the remaining library browsing and
    search presentation to Compose Multiplatform.
-3. Port stream resolution and connect remote tracks to the iOS player.
+3. Validate SoundCloud resolution and playback, then add provider fallback.
    The YouTube/NewPipe engine, decryption, and lossless providers each require
    adaptation; none is active in this initial version.
 4. Add downloads, lyrics, and feature parity, then desktop support.

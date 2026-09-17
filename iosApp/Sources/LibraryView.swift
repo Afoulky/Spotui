@@ -37,7 +37,7 @@ struct LibraryView: View {
                             }.onDelete(perform: playback.remove)
                         }
                         Section {
-                            Text("This initial iOS version supports local playback. Spotify sign-in and browsing are planned for a later update.")
+                            Text("Use the Spotify tab to search and browse playlists. Audio for those tracks is resolved through another provider.")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                     }.listStyle(.insetGrouped)

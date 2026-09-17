@@ -2,9 +2,12 @@ import SwiftUI
 
 struct SpotifySearchView: View {
     @ObservedObject var session: SpotifySession
+    @ObservedObject var playback: LocalPlayback
     @State private var query = ""
     @State private var showLogin = false
     @State private var selectedSection = 0
+    @State private var isResolving = false
+    @State private var provider = SoundCloudAudioProvider()
 
     var body: some View {
         NavigationView {
@@ -29,7 +32,7 @@ struct SpotifySearchView: View {
                     .pickerStyle(.segmented)
                     .padding()
                     if selectedSection == 1 {
-                        SpotifyPlaylistsView(session: session)
+                        SpotifyPlaylistsView(session: session, playback: playback, provider: provider)
                     } else {
                         HStack {
                             TextField("Songs or artists", text: $query)
@@ -42,36 +45,61 @@ struct SpotifySearchView: View {
                         if session.isBusy { ProgressView().padding() }
                         List {
                             ForEach(session.results) { track in
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(track.name).font(.headline)
-                                    Text(track.artist).font(.subheadline).foregroundColor(.secondary)
-                                    if !track.album.isEmpty {
-                                        Text(track.album).font(.caption).foregroundColor(.secondary)
+                                Button { play(track) } label: {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(track.name).font(.headline)
+                                        Text(track.artist).font(.subheadline).foregroundColor(.secondary)
+                                        if !track.album.isEmpty {
+                                            Text(track.album).font(.caption).foregroundColor(.secondary)
+                                        }
                                     }
-                                }.padding(.vertical, 4)
-                            }
-                            if !session.results.isEmpty {
-                                Text("Spotify track playback is not available in this iOS milestone.")
-                                    .font(.footnote).foregroundColor(.secondary)
+                                }
+                                .disabled(isResolving)
                             }
                         }
                     }
+                }
+                if isResolving { ProgressView("Finding audio…").padding() }
+                if let track = playback.currentRemote {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(track.name).font(.headline).lineLimit(1)
+                            Text(track.artist).font(.caption).foregroundColor(.secondary).lineLimit(1)
+                        }
+                        Spacer()
+                        Button(action: playback.toggle) {
+                            Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                .font(.title)
+                        }
+                    }
+                    .padding().background(.ultraThinMaterial)
                 }
             }
             .navigationTitle("Spotify")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Sign out") { session.signOut() }
+                    Button("Sign out") {
+                        playback.stopRemote()
+                        session.signOut()
+                    }
                         .disabled(!session.isSignedIn)
                 }
             }
             .sheet(isPresented: $showLogin) { SpotifyWebLogin(session: session) }
             .alert("Spotify", isPresented: Binding(
-                get: { session.errorMessage != nil && !showLogin },
-                set: { if !$0 { session.errorMessage = nil } }
+                get: { (session.errorMessage != nil || playback.errorMessage != nil) && !showLogin },
+                set: {
+                    if !$0 {
+                        session.errorMessage = nil
+                        playback.errorMessage = nil
+                    }
+                }
             )) {
-                Button("OK") { session.errorMessage = nil }
-            } message: { Text(session.errorMessage ?? "") }
+                Button("OK") {
+                    session.errorMessage = nil
+                    playback.errorMessage = nil
+                }
+            } message: { Text(session.errorMessage ?? playback.errorMessage ?? "") }
         }
         .navigationViewStyle(.stack)
     }
@@ -79,15 +107,33 @@ struct SpotifySearchView: View {
     private func runSearch() {
         Task { await session.search(query) }
     }
+
+    private func play(_ track: SpotifySearchTrack) {
+        guard !isResolving else { return }
+        isResolving = true
+        Task {
+            defer { isResolving = false }
+            do {
+                let url = try await provider.resolve(track)
+                playback.playRemote(track, from: url)
+            } catch {
+                session.errorMessage = error.localizedDescription
+            }
+        }
+    }
 }
 
 private struct SpotifyPlaylistsView: View {
     @ObservedObject var session: SpotifySession
+    @ObservedObject var playback: LocalPlayback
+    let provider: SoundCloudAudioProvider
 
     var body: some View {
         List {
             ForEach(session.playlists) { playlist in
-                NavigationLink(destination: SpotifyPlaylistDetailView(session: session, playlist: playlist)) {
+                NavigationLink(destination: SpotifyPlaylistDetailView(
+                    session: session, playback: playback, provider: provider, playlist: playlist
+                )) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(playlist.name).font(.headline)
                         if !playlist.owner.isEmpty {
@@ -116,24 +162,31 @@ private struct SpotifyPlaylistsView: View {
 
 private struct SpotifyPlaylistDetailView: View {
     @ObservedObject var session: SpotifySession
+    @ObservedObject var playback: LocalPlayback
+    let provider: SoundCloudAudioProvider
     let playlist: SpotifyPlaylist
     @State private var tracks: [SpotifySearchTrack] = []
     @State private var errorMessage: String?
+    @State private var playbackErrorMessage: String?
     @State private var isLoading = false
     @State private var nextOffset = 0
     @State private var totalTracks = 0
+    @State private var isResolving = false
 
     var body: some View {
         List {
             ForEach(tracks.indices, id: \.self) { index in
                 let track = tracks[index]
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(track.name).font(.headline)
-                    Text(track.artist).font(.subheadline).foregroundColor(.secondary)
-                    if !track.album.isEmpty {
-                        Text(track.album).font(.caption).foregroundColor(.secondary)
+                Button { play(track) } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(track.name).font(.headline)
+                        Text(track.artist).font(.subheadline).foregroundColor(.secondary)
+                        if !track.album.isEmpty {
+                            Text(track.album).font(.caption).foregroundColor(.secondary)
+                        }
                     }
                 }
+                .disabled(isResolving)
             }
             if nextOffset < totalTracks && errorMessage == nil {
                 Button("Load more tracks") {
@@ -147,14 +200,30 @@ private struct SpotifyPlaylistDetailView: View {
                     .disabled(isLoading)
             } else if !isLoading && tracks.isEmpty {
                 Text("No tracks found.").foregroundColor(.secondary)
-            } else if !tracks.isEmpty {
-                Text("Spotify playback is not available yet.")
-                    .font(.footnote).foregroundColor(.secondary)
             }
         }
         .navigationTitle(playlist.name)
-        .overlay { if isLoading { ProgressView() } }
+        .safeAreaInset(edge: .bottom) {
+            if let current = playback.currentRemote {
+                HStack {
+                    Text(current.name).lineLimit(1)
+                    Spacer()
+                    Button(action: playback.toggle) {
+                        Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.title)
+                    }
+                }
+                .padding().background(.ultraThinMaterial)
+            }
+        }
+        .overlay { if isLoading || isResolving { ProgressView() } }
         .task { await loadTracks() }
+        .alert("Playback", isPresented: Binding(
+            get: { playbackErrorMessage != nil },
+            set: { if !$0 { playbackErrorMessage = nil } }
+        )) {
+            Button("OK") { playbackErrorMessage = nil }
+        } message: { Text(playbackErrorMessage ?? "") }
     }
 
     private func loadTracks() async {
@@ -169,6 +238,20 @@ private struct SpotifyPlaylistDetailView: View {
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func play(_ track: SpotifySearchTrack) {
+        guard !isResolving else { return }
+        isResolving = true
+        Task {
+            defer { isResolving = false }
+            do {
+                let url = try await provider.resolve(track)
+                playback.playRemote(track, from: url)
+            } catch {
+                playbackErrorMessage = error.localizedDescription
+            }
         }
     }
 }

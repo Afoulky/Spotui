@@ -9,6 +9,7 @@ import SpotuiShared
 final class LocalPlayback: ObservableObject {
     @Published private(set) var tracks: [SpotifyTrack] = []
     @Published private(set) var current: SpotifyTrack?
+    @Published private(set) var currentRemote: SpotifySearchTrack?
     @Published private(set) var isPlaying = false
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
@@ -164,6 +165,27 @@ final class LocalPlayback: ObservableObject {
     func play(_ track: SpotifyTrack) {
         guard let uri = track.uri, let url = URL(string: uri), url.isFileURL else { return }
         current = track
+        currentRemote = nil
+        replaceItem(with: url)
+    }
+
+    func playRemote(_ track: SpotifySearchTrack, from url: URL) {
+        current = nil
+        currentRemote = track
+        replaceItem(with: url)
+    }
+
+    func stopRemote() {
+        guard currentRemote != nil else { return }
+        pause()
+        player.replaceCurrentItem(with: nil)
+        currentRemote = nil
+        position = 0
+        duration = 0
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+
+    private func replaceItem(with url: URL) {
         position = 0
         duration = 0
         let item = AVPlayerItem(url: url)
@@ -179,7 +201,7 @@ final class LocalPlayback: ObservableObject {
     }
 
     func resume() {
-        guard current != nil else { return }
+        guard current != nil || currentRemote != nil else { return }
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default)
@@ -217,6 +239,7 @@ final class LocalPlayback: ObservableObject {
     }
 
     func next() {
+        if currentRemote != nil { pause(); return }
         guard let index = tracks.firstIndex(where: { $0.id == current?.id }) else { return }
         if index + 1 < tracks.count {
             play(tracks[index + 1])
@@ -226,6 +249,7 @@ final class LocalPlayback: ObservableObject {
     }
 
     func previous() {
+        if currentRemote != nil { seek(to: 0); return }
         guard let index = tracks.firstIndex(where: { $0.id == current?.id }) else { return }
         if position > 3 || index == 0 {
             seek(to: 0)
@@ -256,13 +280,15 @@ final class LocalPlayback: ObservableObject {
     }
 
     private func updateNowPlaying() {
-        guard let current else { return }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = [
-            MPMediaItemPropertyTitle: current.name,
+        guard current != nil || currentRemote != nil else { return }
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: currentRemote?.name ?? current?.name ?? "",
             MPMediaItemPropertyPlaybackDuration: duration,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: position,
             MPNowPlayingInfoPropertyPlaybackRate: player.rate
         ]
+        if let artist = currentRemote?.artist { info[MPMediaItemPropertyArtist] = artist }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
     private func installRemoteCommands() {

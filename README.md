@@ -13,11 +13,13 @@ import and playback, and Android/iOS build workflows. Import, local playback,
 background audio, and system controls have been tested on an iPhone 6s running
 iOS 15 inside LiveContainer. Spotify sign-in and track search have also been
 tested on the device. Playlist browsing and loading more than 50 tracks have
-also been tested. Spotify track streaming and full library browsing are not
-ported yet. Desktop support is planned but not implemented.
+also been tested. A first iOS playback path now matches Spotify metadata to
+SoundCloud audio; it awaits a remote build and device validation. Other audio
+providers and full library browsing are not ported yet. Desktop support is
+planned but not implemented.
 
-The next priorities are to port remote playback and the rest of the library,
-and validate the Android APK.
+The next priorities are to validate SoundCloud playback on device, port more
+audio providers and the rest of the library, and validate the Android APK.
 See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
 and the current limitations.
 

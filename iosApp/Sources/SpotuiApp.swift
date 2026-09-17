@@ -10,7 +10,7 @@ struct SpotuiApp: App {
             TabView {
                 LibraryView(playback: playback)
                     .tabItem { Label("Local", systemImage: "music.note.list") }
-                SpotifySearchView(session: spotify)
+                SpotifySearchView(session: spotify, playback: playback)
                     .tabItem { Label("Spotify", systemImage: "magnifyingglass") }
             }
                 .preferredColorScheme(.dark)
