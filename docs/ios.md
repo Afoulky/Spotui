@@ -3,8 +3,8 @@
 ## Current status
 
 This first milestone lays the groundwork for the port. It does not yet provide
-feature parity with Android: Spotify sign-in, search, and library browsing are
-not available on iOS.
+feature parity with Android: Spotify track playback and library browsing are
+not available on iOS. A new sign-in and track search flow awaits device testing.
 
 Implemented:
 
@@ -15,6 +15,10 @@ Implemented:
 - An app requiring iOS/iPadOS 15 or later: import from Files, persistent copies
   in the app's private storage, deletion, native AVPlayer playback, pause,
   seeking, and previous/next controls.
+- An initial Spotify sign-in and track search screen. It uses the same web-player
+  token and persisted-query protocol as Android, stores the session cookie in
+  iOS Keychain, and keeps access tokens in memory. It has not yet been tested
+  on a device; Spotify's internal endpoints may change.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -27,8 +31,14 @@ can also be used by the future desktop application.
 
 Validation completed so far: 3 shared-module tests and 19 existing Spotify
 module tests pass. YAML, plist, and shell script syntax have been checked.
-The full Android build has not yet been validated; it requires a configured
-Android SDK. The iOS build has not yet been run; no IPA has been produced yet.
+The iOS workflow has produced an IPA that launches on the iPhone 6s test device.
+Audio file selection, import, local playback while locked, and system media
+controls work inside LiveContainer after enabling its **Fix File Picker** setting
+for Spotui. Headphone disconnection, interruption recovery, and file persistence
+still need device validation. The Android workflow has not yet produced a
+validated APK.
+The newer iOS sign-in and search code has not yet been compiled remotely or
+tested on the iPhone.
 
 ## Producing the IPA with GitHub Actions
 
@@ -61,9 +71,26 @@ and [SideStore documentation](https://docs.sidestore.io/docs/installation/instal
 3. Run the device checks below. Record the iOS and LiveContainer versions when
    reporting problems.
 
-Spotui has not yet been tested inside LiveContainer. In particular, file imports,
-background playback, and lock-screen controls need device validation. Targeting
-iOS 15 does not by itself guarantee compatibility with the installed host.
+If the Files picker opens but **Open** does nothing after choosing an audio file,
+return to LiveContainer, press and hold the Spotui app card, tap **Settings**,
+enable **Fix File Picker** under **Fixes**, and launch Spotui again. LiveContainer
+documents this setting for guest apps whose system file picker cannot select
+files. On older LiveContainer versions, the equivalent
+setting may be named **Fix File Picker & Local Notification**. If selection still
+fails, try its **Fix File Picker (legacy)** option or install the same IPA
+directly with SideStore to compare behavior. The legacy option copies selected
+files into the guest app's Inbox, so check available storage before large imports.
+
+Another route to test is **Files → select an audio file → Share → LiveContainer →
+Spotui**. LiveContainer documents this as **Open In App** support. Spotui accepts
+audio files sent through an open-document URL and copies them into its library.
+This route has not yet been verified on the test iPhone; it may vary by
+LiveContainer version and audio file type.
+
+Spotui has been tested inside LiveContainer on an iPhone 6s running iOS 15.
+File import, playback while locked, and system media controls work with
+**Fix File Picker** enabled. Headphone disconnection, interruption recovery,
+and file persistence still need device validation.
 
 If import, launch, or audio behavior fails in LiveContainer, try installing the
 same IPA directly with SideStore's IPA installation action. This signs and
@@ -88,11 +115,16 @@ replace testing on this physical device.
 2. Check play/pause, seeking, previous/next, and automatic advancement to the
    next track. An unsupported format should display an error.
 3. Lock the screen and check that audio continues and system controls work.
+   Both passed on the iPhone 6s running Spotui inside LiveContainer.
 4. Disconnect headphones: playback should pause. Also test an audio interruption
    and recovery afterward.
 5. Close and reopen the app: imported files should still be present.
 6. Delete a track: it should disappear, and playback should stop if that track
    was playing.
+7. On the Spotify tab, test web sign-in and search. If the web login cannot
+   complete, the manual `sp_dc` field is a fallback. Verify that signing out
+   removes the session and that a relaunch restores a saved session. Search
+   results display metadata only; selecting a Spotify track cannot play it yet.
 
 ## Development
 
@@ -135,12 +167,12 @@ The workflow selects Xcode 26.4.
 
 ## Next steps
 
-1. Port the Spotify client and authentication: multiplatform Ktor networking,
-   Keychain storage for secrets, and iOS sign-in. The current implementation
-   depends on Java, WebView cookies, and Spotify internals; WebKit compatibility
-   must be tested and is not guaranteed.
+1. Validate and harden iOS web sign-in and track search. The initial native
+   implementation duplicates Android's token and search protocol; move that
+   protocol into shared code once it has been validated on device. Spotify's
+   internal endpoints and WebKit login behavior may change.
 2. Share repositories and screen state, then migrate library browsing and
-   search to Compose Multiplatform.
+   search presentation to Compose Multiplatform.
 3. Port stream resolution and connect remote tracks to the iOS player.
    The YouTube/NewPipe engine, decryption, and lossless providers each require
    adaptation; none is active in this initial version.
@@ -154,4 +186,5 @@ The workflow selects Xcode 26.4.
 - [XcodeGen configuration](https://github.com/yonaskolb/XcodeGen/blob/master/Docs/ProjectSpec.md)
 - [Apple accounts and Personal Team limitations](https://developer.apple.com/help/account/basics/about-your-developer-account)
 - [LiveContainer installation](https://livecontainer.github.io/docs/installation)
+- [LiveContainer app settings and file picker fixes](https://livecontainer.github.io/docs/guides/app-settings)
 - [SideStore installation and setup](https://docs.sidestore.io/docs/installation/install)

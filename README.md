@@ -8,13 +8,16 @@ This is an independent fork of [Spotui](https://github.com/H4zh4n/Spotui),
 bringing iOS support and preparing desktop support while retaining the Spotui name.
 It is not an official release from the upstream maintainers.
 
-The first milestone adds shared Kotlin models, an initial iOS app with local
-audio import and playback, and Android/iOS build workflows. The iOS build and
-device behavior still need validation; Spotify login, browsing, and streaming
-are not ported yet. Desktop support is planned but not implemented.
+The first milestone adds shared Kotlin models, an iOS app with local audio
+import and playback, and Android/iOS build workflows. Import, local playback,
+background audio, and system controls have been tested on an iPhone 6s running
+iOS 15 inside LiveContainer. A new iOS Spotify sign-in and track search flow is
+implemented but still needs a remote build and device validation. Spotify track
+streaming and library browsing are not ported yet. Desktop support is planned
+but not implemented.
 
-The next priorities are to validate APK and IPA builds, test on an iPhone 6s
-running iOS 15, and port Spotify sign-in, library browsing, search, and playback.
+The next priorities are to validate the new Spotify sign-in and search flow on
+device, port library browsing and remote playback, and validate the Android APK.
 See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
 and the current limitations.
 
