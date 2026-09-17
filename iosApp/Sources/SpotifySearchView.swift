@@ -120,6 +120,8 @@ private struct SpotifyPlaylistDetailView: View {
     @State private var tracks: [SpotifySearchTrack] = []
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @State private var nextOffset = 0
+    @State private var totalTracks = 0
 
     var body: some View {
         List {
@@ -133,12 +135,20 @@ private struct SpotifyPlaylistDetailView: View {
                     }
                 }
             }
+            if nextOffset < totalTracks && errorMessage == nil {
+                Button("Load more tracks") {
+                    Task { await loadTracks() }
+                }
+                .disabled(isLoading)
+            }
             if let errorMessage {
                 Text(errorMessage).foregroundColor(.red)
+                Button("Retry") { Task { await loadTracks() } }
+                    .disabled(isLoading)
             } else if !isLoading && tracks.isEmpty {
                 Text("No tracks found.").foregroundColor(.secondary)
             } else if !tracks.isEmpty {
-                Text("Showing up to 50 tracks. Spotify playback is not available yet.")
+                Text("Spotify playback is not available yet.")
                     .font(.footnote).foregroundColor(.secondary)
             }
         }
@@ -148,10 +158,14 @@ private struct SpotifyPlaylistDetailView: View {
     }
 
     private func loadTracks() async {
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
-            tracks = try await session.tracks(in: playlist)
+            let page = try await session.tracks(in: playlist, offset: nextOffset)
+            tracks.append(contentsOf: page.tracks)
+            nextOffset += page.receivedCount
+            totalTracks = page.receivedCount == 0 ? nextOffset : page.total
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription

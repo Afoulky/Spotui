@@ -12,12 +12,13 @@ The first milestone adds shared Kotlin models, an iOS app with local audio
 import and playback, and Android/iOS build workflows. Import, local playback,
 background audio, and system controls have been tested on an iPhone 6s running
 iOS 15 inside LiveContainer. Spotify sign-in and track search have also been
-tested on the device. The iOS app can now browse Spotify playlists and their
-first 50 tracks, pending a remote build and device test. Spotify track streaming
+tested on the device. Playlist browsing and opening the first page of tracks
+have also been tested. Loading additional track pages awaits a remote build and
+device test. Spotify track streaming
 and full library browsing are not ported yet. Desktop support is planned but
 not implemented.
 
-The next priorities are to validate playlist browsing on device, port remote
+The next priorities are to validate track pagination on device, port remote
 playback and the rest of the library, and validate the Android APK.
 See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
 and the current limitations.

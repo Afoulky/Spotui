@@ -17,6 +17,12 @@ struct SpotifyPlaylist: Identifiable {
     let owner: String
 }
 
+struct SpotifyPlaylistTrackPage {
+    let tracks: [SpotifySearchTrack]
+    let total: Int
+    let receivedCount: Int
+}
+
 private enum SpotifyRequestError: LocalizedError {
     case invalidResponse(String)
     case http(Int)
@@ -133,9 +139,9 @@ final class SpotifySession: ObservableObject {
         }
     }
 
-    func tracks(in playlist: SpotifyPlaylist) async throws -> [SpotifySearchTrack] {
+    func tracks(in playlist: SpotifyPlaylist, offset: Int) async throws -> SpotifyPlaylistTrackPage {
         let token = try await validToken()
-        return try await Self.fetchPlaylistTracks(id: playlist.id, token: token)
+        return try await Self.fetchPlaylistTracks(id: playlist.id, token: token, offset: offset)
     }
 
     private func validToken() async throws -> String {
@@ -349,10 +355,10 @@ final class SpotifySession: ObservableObject {
     }
 
     private static func fetchPlaylistTracks(
-        id: String, token: String
-    ) async throws -> [SpotifySearchTrack] {
+        id: String, token: String, offset: Int
+    ) async throws -> SpotifyPlaylistTrackPage {
         let variables: [String: Any] = [
-            "uri": "spotify:playlist:\(id)", "offset": 0, "limit": 50,
+            "uri": "spotify:playlist:\(id)", "offset": offset, "limit": 50,
             "enableWatchFeedEntrypoint": false
         ]
         let object = try await graphQL(
@@ -364,7 +370,7 @@ final class SpotifySession: ObservableObject {
               let items = content["items"] as? [[String: Any]] else {
             throw SpotifyRequestError.invalidResponse("playlist tracks")
         }
-        return items.compactMap { element in
+        let tracks = items.compactMap { element -> SpotifySearchTrack? in
             guard let wrapper = element["itemV2"] as? [String: Any],
                   let track = wrapper["data"] as? [String: Any],
                   let name = track["name"] as? String else { return nil }
@@ -377,6 +383,10 @@ final class SpotifySession: ObservableObject {
             let album = (track["albumOfTrack"] as? [String: Any])?["name"] as? String ?? ""
             return SpotifySearchTrack(id: uri, name: name, artist: artist, album: album)
         }
+        return SpotifyPlaylistTrackPage(
+            tracks: tracks, total: content["totalCount"] as? Int ?? offset + items.count,
+            receivedCount: items.count
+        )
     }
 
     private static func keychainQuery() -> [String: Any] {

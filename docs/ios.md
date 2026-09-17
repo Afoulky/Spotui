@@ -5,7 +5,7 @@
 This first milestone lays the groundwork for the port. It does not yet provide
 feature parity with Android: Spotify track playback and full library browsing
 are not available on iOS. Sign-in and track search work on the test device;
-playlist browsing has been implemented but awaits device validation.
+playlist browsing and the first page of tracks work on the test device.
 
 Implemented:
 
@@ -20,9 +20,11 @@ Implemented:
   token and persisted-query protocol as Android, stores the session cookie in
   iOS Keychain, and keeps access tokens in memory. Sign-in and track search
   have been tested on the iPhone 6s; Spotify's internal endpoints may change.
-- A playlist browser with pagination and a view of the first 50 tracks in each
-  playlist. It uses Android's `libraryV3` and `fetchPlaylist` queries and still
-  needs a remote build and device test. Spotify tracks cannot be played yet.
+- A playlist browser with pagination for both playlists and tracks. It uses
+  Android's `libraryV3` and `fetchPlaylist` queries. Browsing playlists and
+  opening their first page of tracks work on the iPhone; loading additional
+  track pages still needs a remote build and device test. Spotify tracks cannot
+  be played yet.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -137,8 +139,9 @@ replace testing on this physical device.
    complete, the manual `sp_dc` field is a fallback. Verify that signing out
    removes the session and that a relaunch restores a saved session. Search
    results display metadata only; selecting a Spotify track cannot play it yet.
-8. Open **Playlists** on the Spotify tab, load additional pages, then open a
-   playlist to check its first 50 tracks. Spotify track playback is not yet
+8. Open **Playlists** on the Spotify tab, load additional playlists, then open
+   one with more than 50 tracks and tap **Load more tracks**. Check that the
+   next page appears without duplicates. Spotify track playback is not yet
    available.
 
 ## Development
@@ -182,7 +185,7 @@ The workflow selects Xcode 26.4.
 
 ## Next steps
 
-1. Validate playlist browsing on device, then harden iOS Spotify sign-in and
+1. Validate track pagination on device, then harden iOS Spotify sign-in and
    track search. The initial native implementation duplicates Android's
    token and search protocol; move that protocol into shared code. Spotify's
    internal endpoints and WebKit login behavior may change.
