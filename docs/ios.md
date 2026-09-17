@@ -4,8 +4,8 @@
 
 This first milestone lays the groundwork for the port. It does not yet provide
 feature parity with Android: Spotify track playback and full library browsing
-are not available on iOS. Sign-in and track search work on the test device;
-playlist browsing and the first page of tracks work on the test device.
+are not available on iOS. Sign-in, track search, playlist browsing, and loading
+more than 50 tracks from a playlist work on the test device.
 
 Implemented:
 
@@ -22,9 +22,8 @@ Implemented:
   have been tested on the iPhone 6s; Spotify's internal endpoints may change.
 - A playlist browser with pagination for both playlists and tracks. It uses
   Android's `libraryV3` and `fetchPlaylist` queries. Browsing playlists and
-  opening their first page of tracks work on the iPhone; loading additional
-  track pages still needs a remote build and device test. Spotify tracks cannot
-  be played yet.
+  loading additional track pages work on the iPhone. Spotify tracks cannot be
+  played yet.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -185,9 +184,9 @@ The workflow selects Xcode 26.4.
 
 ## Next steps
 
-1. Validate track pagination on device, then harden iOS Spotify sign-in and
-   track search. The initial native implementation duplicates Android's
-   token and search protocol; move that protocol into shared code. Spotify's
+1. Harden iOS Spotify sign-in and track search. The initial native
+   implementation duplicates Android's token and search protocol; move that
+   protocol into shared code. Spotify's
    internal endpoints and WebKit login behavior may change.
 2. Share repositories and screen state, then migrate the remaining library browsing and
    search presentation to Compose Multiplatform.
