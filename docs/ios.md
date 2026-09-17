@@ -4,7 +4,7 @@
 
 This first milestone lays the groundwork for the port. It does not yet provide
 feature parity with Android: Spotify track playback and library browsing are
-not available on iOS. A new sign-in and track search flow awaits device testing.
+not available on iOS. Sign-in and track search work on the test device.
 
 Implemented:
 
@@ -17,8 +17,8 @@ Implemented:
   seeking, and previous/next controls.
 - An initial Spotify sign-in and track search screen. It uses the same web-player
   token and persisted-query protocol as Android, stores the session cookie in
-  iOS Keychain, and keeps access tokens in memory. It has not yet been tested
-  on a device; Spotify's internal endpoints may change.
+  iOS Keychain, and keeps access tokens in memory. Sign-in and track search
+  have been tested on the iPhone 6s; Spotify's internal endpoints may change.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
@@ -37,8 +37,8 @@ controls work inside LiveContainer after enabling its **Fix File Picker** settin
 for Spotui. Headphone disconnection, interruption recovery, and file persistence
 still need device validation. The Android workflow has not yet produced a
 validated APK.
-The newer iOS sign-in and search code has not yet been compiled remotely or
-tested on the iPhone.
+Spotify sign-in and track search have been tested on the iPhone. Session
+restoration after relaunch and sign-out still need device validation.
 
 ## Producing the IPA with GitHub Actions
 
@@ -174,9 +174,9 @@ The workflow selects Xcode 26.4.
 
 ## Next steps
 
-1. Validate and harden iOS web sign-in and track search. The initial native
-   implementation duplicates Android's token and search protocol; move that
-   protocol into shared code once it has been validated on device. Spotify's
+1. Validate session restoration and sign-out, then harden iOS Spotify sign-in
+   and track search. The initial native implementation duplicates Android's
+   token and search protocol; move that protocol into shared code. Spotify's
    internal endpoints and WebKit login behavior may change.
 2. Share repositories and screen state, then migrate library browsing and
    search presentation to Compose Multiplatform.
