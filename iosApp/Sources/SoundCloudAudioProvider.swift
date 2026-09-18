@@ -4,12 +4,16 @@ private enum SoundCloudResolutionError: LocalizedError {
     case noMatch
     case noStream
     case invalidResponse
+    case httpStatus(Int)
+    case clientIDUnavailable
 
     var errorDescription: String? {
         switch self {
         case .noMatch: return "No matching SoundCloud recording was found."
         case .noStream: return "The matching SoundCloud recording has no playable stream."
         case .invalidResponse: return "SoundCloud returned an unexpected response."
+        case .httpStatus(let status): return "SoundCloud request failed (HTTP \(status))."
+        case .clientIDUnavailable: return "Could not obtain a SoundCloud client ID. Try again later."
         }
     }
 }
@@ -17,13 +21,22 @@ private enum SoundCloudResolutionError: LocalizedError {
 /// Resolves Spotify metadata to a SoundCloud stream; Spotify supplies no audio.
 final class SoundCloudAudioProvider {
     private let api = "https://api-v2.soundcloud.com"
-    private let fallbackClientID = "iZ8g4fkmVfrgwsRotA4tP8hAYzBZu0pE"
     private let userAgent =
         "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36"
     private var clientID: String?
 
     func resolve(_ track: SpotifySearchTrack) async throws -> URL {
-        let id = await activeClientID()
+        let id = try await activeClientID()
+        do {
+            return try await resolve(track, clientID: id)
+        } catch SoundCloudResolutionError.httpStatus(let status) where status == 401 || status == 403 {
+            clientID = nil
+            let refreshedID = try await activeClientID()
+            return try await resolve(track, clientID: refreshedID)
+        }
+    }
+
+    private func resolve(_ track: SpotifySearchTrack, clientID id: String) async throws -> URL {
         var parts = URLComponents(string: api + "/search/tracks")!
         parts.queryItems = [
             URLQueryItem(name: "q", value: "\(track.name) \(track.artist)"),
@@ -46,6 +59,7 @@ final class SoundCloudAudioProvider {
         }.sorted { $0.score > $1.score }
 
         guard !candidates.isEmpty else { throw SoundCloudResolutionError.noMatch }
+        var streamError: Error?
         for candidate in candidates.prefix(3) {
             guard let media = candidate.data["media"] as? [String: Any],
                   let transcodings = media["transcodings"] as? [[String: Any]] else { continue }
@@ -57,25 +71,30 @@ final class SoundCloudAudioProvider {
             guard let endpoint = preferred?["url"] as? String,
                   var streamParts = URLComponents(string: endpoint) else { continue }
             streamParts.queryItems = (streamParts.queryItems ?? []) + [URLQueryItem(name: "client_id", value: id)]
-            guard let streamURL = streamParts.url,
-                  let response = try? await json(at: streamURL),
-                  let urlString = response["url"] as? String,
-                  let url = URL(string: urlString), url.scheme == "https" else { continue }
-            return url
+            guard let streamURL = streamParts.url else { continue }
+            do {
+                let response = try await json(at: streamURL)
+                guard let urlString = response["url"] as? String,
+                      let url = URL(string: urlString), url.scheme == "https" else { continue }
+                return url
+            } catch {
+                streamError = error
+            }
         }
+        if let streamError { throw streamError }
         throw SoundCloudResolutionError.noStream
     }
 
-    private func activeClientID() async -> String {
+    private func activeClientID() async throws -> String {
         if let clientID { return clientID }
-        if let page = try? await fetchData(at: URL(string: "https://soundcloud.com")!),
+        if let page = try? await fetchData(at: URL(string: "https://soundcloud.com")!, accept: "text/html"),
            let html = String(data: page, encoding: .utf8),
            let pattern = try? NSRegularExpression(pattern: #"https://a-v2\.sndcdn\.com/assets/[^\"]+\.js"#) {
             let range = NSRange(html.startIndex..<html.endIndex, in: html)
-            for match in pattern.matches(in: html, range: range).suffix(5).reversed() {
+            for match in pattern.matches(in: html, range: range).reversed() {
                 guard let urlRange = Range(match.range, in: html),
                       let scriptURL = URL(string: String(html[urlRange])),
-                      let script = try? await fetchData(at: scriptURL),
+                      let script = try? await fetchData(at: scriptURL, accept: "*/*"),
                       let source = String(data: script, encoding: .utf8),
                       let idRange = source.range(
                         of: #"client_id[:=]\s*\"[A-Za-z0-9]{32}\""#, options: .regularExpression
@@ -86,8 +105,7 @@ final class SoundCloudAudioProvider {
                 return id
             }
         }
-        clientID = fallbackClientID
-        return fallbackClientID
+        throw SoundCloudResolutionError.clientIDUnavailable
     }
 
     private func json(at url: URL) async throws -> [String: Any] {
@@ -98,14 +116,17 @@ final class SoundCloudAudioProvider {
         return object
     }
 
-    private func fetchData(at url: URL) async throws -> Data {
+    private func fetchData(at url: URL, accept: String = "application/json") async throws -> Data {
         var request = URLRequest(url: url)
         request.timeoutInterval = 20
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(accept, forHTTPHeaderField: "Accept")
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+        guard let response = response as? HTTPURLResponse else {
             throw SoundCloudResolutionError.invalidResponse
+        }
+        guard (200...299).contains(response.statusCode) else {
+            throw SoundCloudResolutionError.httpStatus(response.statusCode)
         }
         return data
     }

@@ -5,17 +5,34 @@ struct ResolvedAudioSource {
     let provider: String
 }
 
+private struct AudioSourceResolutionError: LocalizedError {
+    let qobuz: Error
+    let soundCloud: Error
+
+    var errorDescription: String? {
+        "Qobuz: \(qobuz.localizedDescription) SoundCloud: \(soundCloud.localizedDescription)"
+    }
+}
+
 /// The platform player only needs a URL and its source; provider selection stays here.
 final class AudioSourceResolver {
     private let qobuz = QobuzAudioProvider()
     private let soundCloud = SoundCloudAudioProvider()
 
     func resolve(_ track: SpotifySearchTrack) async throws -> ResolvedAudioSource {
-        if let url = try? await qobuz.resolve(track) {
+        let qobuzError: Error
+        do {
+            let url = try await qobuz.resolve(track)
             return ResolvedAudioSource(url: url, provider: "Qobuz")
+        } catch {
+            qobuzError = error
         }
-        let url = try await soundCloud.resolve(track)
-        return ResolvedAudioSource(url: url, provider: "SoundCloud")
+        do {
+            let url = try await soundCloud.resolve(track)
+            return ResolvedAudioSource(url: url, provider: "SoundCloud")
+        } catch {
+            throw AudioSourceResolutionError(qobuz: qobuzError, soundCloud: error)
+        }
     }
 }
 
