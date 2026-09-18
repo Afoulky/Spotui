@@ -26,7 +26,9 @@ Implemented:
 - An initial playback path that tries a matching Qobuz MP3, then a SoundCloud
   recording, and plays the resolved audio URL with AVPlayer. Spotify provides
   metadata, not audio. This path still needs a remote build and device test;
-  matching can fail, and Android's other providers are not connected yet.
+  matching can fail, and Android's other providers are not connected yet. The
+  SoundCloud fallback currently runs when Qobuz resolution fails, not when a
+  resolved Qobuz URL later fails inside AVPlayer.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.

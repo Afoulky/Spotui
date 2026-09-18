@@ -46,6 +46,7 @@ final class SpotifySession: ObservableObject {
     @Published private(set) var playlists: [SpotifyPlaylist] = []
     @Published private(set) var hasMorePlaylists = false
     @Published var errorMessage: String?
+    var revision: Int { sessionGeneration }
 
     private static let keychainService = "com.music.spotui.ios.spotify"
     private static let searchHash = "4801118d4a100f756e833d33984436a3899cff359c532f8fd3aaf174b60b3b49"
@@ -57,6 +58,7 @@ final class SpotifySession: ObservableObject {
     private var accessToken: String?
     private var tokenExpiresAt = Date.distantPast
     private var playlistOffset = 0
+    private var sessionGeneration = 0
 
     init() {
         cookie = Self.readCookie()
@@ -69,10 +71,13 @@ final class SpotifySession: ObservableObject {
             errorMessage = "Enter a Spotify session cookie."
             return
         }
+        guard !isBusy else { return }
+        let generation = sessionGeneration
         isBusy = true
-        defer { isBusy = false }
+        defer { if generation == sessionGeneration { isBusy = false } }
         do {
             let token = try await Self.fetchToken(cookie: candidate)
+            guard generation == sessionGeneration else { return }
             try Self.saveCookie(candidate)
             cookie = candidate
             accessToken = token.value
@@ -80,11 +85,12 @@ final class SpotifySession: ObservableObject {
             isSignedIn = true
             errorMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            if generation == sessionGeneration { errorMessage = error.localizedDescription }
         }
     }
 
     func signOut() {
+        sessionGeneration += 1
         Self.deleteCookie()
         WKWebsiteDataStore.default().httpCookieStore.getAllCookies { cookies in
             for cookie in cookies where cookie.domain.hasSuffix("spotify.com")
@@ -99,6 +105,7 @@ final class SpotifySession: ObservableObject {
         playlists = []
         hasMorePlaylists = false
         playlistOffset = 0
+        isBusy = false
         isSignedIn = false
         errorMessage = nil
     }
@@ -109,45 +116,54 @@ final class SpotifySession: ObservableObject {
             results = []
             return
         }
-        guard cookie != nil else { return }
+        guard cookie != nil, !isBusy else { return }
+        let generation = sessionGeneration
         isBusy = true
-        defer { isBusy = false }
+        defer { if generation == sessionGeneration { isBusy = false } }
         do {
             let token = try await validToken()
-            results = try await Self.searchTracks(term, token: token)
+            let found = try await Self.searchTracks(term, token: token)
+            guard generation == sessionGeneration else { return }
+            results = found
             errorMessage = nil
         } catch {
-            handleRequestError(error)
+            if generation == sessionGeneration { handleRequestError(error) }
         }
     }
 
     func loadPlaylists(reset: Bool = false) async {
         guard cookie != nil, !isBusy else { return }
         if !reset && !playlists.isEmpty && !hasMorePlaylists { return }
+        let generation = sessionGeneration
         isBusy = true
-        defer { isBusy = false }
+        defer { if generation == sessionGeneration { isBusy = false } }
         do {
             let token = try await validToken()
             let offset = reset ? 0 : playlistOffset
             let page = try await Self.fetchPlaylists(token: token, offset: offset)
+            guard generation == sessionGeneration else { return }
             playlists = reset ? page.items : playlists + page.items
             playlistOffset = offset + page.receivedCount
             hasMorePlaylists = playlistOffset < page.total && page.receivedCount > 0
             errorMessage = nil
         } catch {
-            handleRequestError(error)
+            if generation == sessionGeneration { handleRequestError(error) }
         }
     }
 
     func tracks(in playlist: SpotifyPlaylist, offset: Int) async throws -> SpotifyPlaylistTrackPage {
+        let generation = sessionGeneration
         let token = try await validToken()
-        return try await Self.fetchPlaylistTracks(id: playlist.id, token: token, offset: offset)
+        let page = try await Self.fetchPlaylistTracks(id: playlist.id, token: token, offset: offset)
+        guard generation == sessionGeneration else { throw SpotifyRequestError.expiredSession }
+        return page
     }
 
     private func validToken() async throws -> String {
         guard let cookie else { throw SpotifyRequestError.expiredSession }
         if accessToken == nil || tokenExpiresAt <= Date().addingTimeInterval(60) {
             let token = try await Self.fetchToken(cookie: cookie)
+            guard self.cookie == cookie else { throw SpotifyRequestError.expiredSession }
             accessToken = token.value
             tokenExpiresAt = token.expiresAt
         }

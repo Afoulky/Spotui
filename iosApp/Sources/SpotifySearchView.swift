@@ -83,7 +83,7 @@ struct SpotifySearchView: View {
                         playback.stopRemote()
                         session.signOut()
                     }
-                        .disabled(!session.isSignedIn)
+                    .disabled(!session.isSignedIn)
                 }
             }
             .sheet(isPresented: $showLogin) { SpotifyWebLogin(session: session) }
@@ -103,6 +103,9 @@ struct SpotifySearchView: View {
             } message: { Text(session.errorMessage ?? playback.errorMessage ?? "") }
         }
         .navigationViewStyle(.stack)
+        .onChange(of: session.isSignedIn) { signedIn in
+            if !signedIn { playback.stopRemote() }
+        }
     }
 
     private func runSearch() {
@@ -111,14 +114,16 @@ struct SpotifySearchView: View {
 
     private func play(_ track: SpotifySearchTrack) {
         guard !isResolving else { return }
+        let revision = session.revision
         isResolving = true
         Task {
             defer { isResolving = false }
             do {
                 let source = try await resolver.resolve(track)
+                guard session.isSignedIn, revision == session.revision else { return }
                 playback.playRemote(track, from: source)
             } catch {
-                session.errorMessage = error.localizedDescription
+                if revision == session.revision { session.errorMessage = error.localizedDescription }
             }
         }
     }
@@ -128,6 +133,7 @@ private struct SpotifyPlaylistsView: View {
     @ObservedObject var session: SpotifySession
     @ObservedObject var playback: LocalPlayback
     let resolver: AudioSourceResolver
+    @State private var deferredInitialLoad = false
 
     var body: some View {
         List {
@@ -157,7 +163,20 @@ private struct SpotifyPlaylistsView: View {
             if session.isBusy && session.playlists.isEmpty { ProgressView() }
         }
         .refreshable { await session.loadPlaylists(reset: true) }
-        .task { await session.loadPlaylists(reset: true) }
+        .task {
+            if session.isBusy {
+                deferredInitialLoad = true
+            } else {
+                await session.loadPlaylists(reset: true)
+            }
+        }
+        .onChange(of: session.isBusy) { busy in
+            // The first load may have been skipped while a search was finishing.
+            if !busy && deferredInitialLoad {
+                deferredInitialLoad = false
+                Task { await session.loadPlaylists(reset: true) }
+            }
+        }
     }
 }
 
@@ -224,11 +243,19 @@ private struct SpotifyPlaylistDetailView: View {
         .overlay { if isLoading || isResolving { ProgressView() } }
         .task { await loadTracks() }
         .alert("Playback", isPresented: Binding(
-            get: { playbackErrorMessage != nil },
-            set: { if !$0 { playbackErrorMessage = nil } }
+            get: { playbackErrorMessage != nil || playback.errorMessage != nil },
+            set: {
+                if !$0 {
+                    playbackErrorMessage = nil
+                    playback.errorMessage = nil
+                }
+            }
         )) {
-            Button("OK") { playbackErrorMessage = nil }
-        } message: { Text(playbackErrorMessage ?? "") }
+            Button("OK") {
+                playbackErrorMessage = nil
+                playback.errorMessage = nil
+            }
+        } message: { Text(playbackErrorMessage ?? playback.errorMessage ?? "") }
     }
 
     private func loadTracks() async {
@@ -248,14 +275,16 @@ private struct SpotifyPlaylistDetailView: View {
 
     private func play(_ track: SpotifySearchTrack) {
         guard !isResolving else { return }
+        let revision = session.revision
         isResolving = true
         Task {
             defer { isResolving = false }
             do {
                 let source = try await resolver.resolve(track)
+                guard session.isSignedIn, revision == session.revision else { return }
                 playback.playRemote(track, from: source)
             } catch {
-                playbackErrorMessage = error.localizedDescription
+                if revision == session.revision { playbackErrorMessage = error.localizedDescription }
             }
         }
     }
