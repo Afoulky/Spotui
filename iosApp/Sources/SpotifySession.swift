@@ -9,12 +9,14 @@ struct SpotifySearchTrack: Identifiable {
     let name: String
     let artist: String
     let album: String
+    let artworkURL: URL?
 }
 
 struct SpotifyPlaylist: Identifiable {
     let id: String
     let name: String
     let owner: String
+    let artworkURL: URL?
 }
 
 struct SpotifyPlaylistTrackPage {
@@ -108,6 +110,10 @@ final class SpotifySession: ObservableObject {
         isBusy = false
         isSignedIn = false
         errorMessage = nil
+    }
+
+    func clearSearch() {
+        results = []
     }
 
     func search(_ query: String) async {
@@ -296,7 +302,10 @@ final class SpotifySession: ObservableObject {
             let artist = artists.compactMap { $0["profile"] as? [String: Any] }
                 .compactMap { $0["name"] as? String }.joined(separator: ", ")
             let album = (track["albumOfTrack"] as? [String: Any])?["name"] as? String ?? ""
-            return SpotifySearchTrack(id: uri, name: name, artist: artist, album: album)
+            return SpotifySearchTrack(
+                id: uri, name: name, artist: artist, album: album,
+                artworkURL: imageURL(in: track["albumOfTrack"])
+            )
         }
     }
 
@@ -364,7 +373,8 @@ final class SpotifySession: ObservableObject {
             return SpotifyPlaylist(
                 id: String(uri.dropFirst("spotify:playlist:".count)),
                 name: info["name"] as? String ?? "Untitled playlist",
-                owner: owner?["name"] as? String ?? ""
+                owner: owner?["name"] as? String ?? "",
+                artworkURL: imageURL(in: info["images"] ?? info)
             )
         }
         return (items, library["totalCount"] as? Int ?? rawItems.count, rawItems.count)
@@ -397,12 +407,30 @@ final class SpotifySession: ObservableObject {
             let artist = artists.compactMap { ($0["profile"] as? [String: Any])?["name"] as? String }
                 .joined(separator: ", ")
             let album = (track["albumOfTrack"] as? [String: Any])?["name"] as? String ?? ""
-            return SpotifySearchTrack(id: uri, name: name, artist: artist, album: album)
+            return SpotifySearchTrack(
+                id: uri, name: name, artist: artist, album: album,
+                artworkURL: imageURL(in: track["albumOfTrack"])
+            )
         }
         return SpotifyPlaylistTrackPage(
             tracks: tracks, total: content["totalCount"] as? Int ?? offset + items.count,
             receivedCount: items.count
         )
+    }
+
+    private static func imageURL(in value: Any?) -> URL? {
+        if let dictionary = value as? [String: Any] {
+            if let raw = dictionary["url"] as? String,
+               let url = URL(string: raw), url.scheme == "https" { return url }
+            for key in ["coverArt", "images", "items", "sources"] {
+                if let url = imageURL(in: dictionary[key]) { return url }
+            }
+        } else if let values = value as? [Any] {
+            for item in values {
+                if let url = imageURL(in: item) { return url }
+            }
+        }
+        return nil
     }
 
     private static func keychainQuery() -> [String: Any] {

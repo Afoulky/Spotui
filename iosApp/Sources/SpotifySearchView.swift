@@ -5,87 +5,78 @@ struct SpotifySearchView: View {
     @ObservedObject var playback: LocalPlayback
     @State private var query = ""
     @State private var showLogin = false
-    @State private var selectedSection = 0
     @State private var isResolving = false
     @State private var resolver = AudioSourceResolver()
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                HStack {
+                    Text("Search").font(.system(size: 30, weight: .bold))
+                    Spacer()
+                    if session.isSignedIn {
+                        Menu {
+                            Button("Sign out", role: .destructive) {
+                                playback.stopRemote()
+                                session.signOut()
+                            }
+                        } label: {
+                            Image(systemName: "person.crop.circle.fill").font(.system(size: 32)).foregroundColor(.orange)
+                        }
+                    }
+                }.padding(.horizontal, 16).padding(.top, 18).padding(.bottom, 12)
                 if !session.isSignedIn {
                     VStack(spacing: 16) {
                         Image(systemName: "magnifyingglass")
-                            .font(.system(size: 52)).foregroundColor(.green)
+                            .font(.system(size: 52)).foregroundColor(MeloBridgeColors.accent)
                         Text("Search Spotify")
                             .font(.title2.bold())
                         Text("Sign in to explore tracks from your Spotify account.")
                             .multilineTextAlignment(.center).foregroundColor(.secondary)
                         Button("Sign in to Spotify") { showLogin = true }
-                            .buttonStyle(.borderedProminent)
+                            .font(.system(size: 14, weight: .bold)).foregroundColor(.black)
+                            .padding(.horizontal, 24).frame(height: 44)
+                            .background(MeloBridgeColors.accent).clipShape(Capsule())
                     }
                     .padding(30).frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    Picker("Spotify section", selection: $selectedSection) {
-                        Text("Search").tag(0)
-                        Text("Playlists").tag(1)
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass").foregroundColor(.black)
+                        TextField("What do you want to listen to?", text: $query)
+                            .foregroundColor(.black).accentColor(.black)
+                            .submitLabel(.search).onSubmit(runSearch)
+                        if !query.isEmpty {
+                            Button { query = ""; session.clearSearch() } label: {
+                                Image(systemName: "xmark").foregroundColor(.black)
+                            }
+                        }
                     }
-                    .pickerStyle(.segmented)
-                    .padding()
-                    if selectedSection == 1 {
-                        SpotifyPlaylistsView(session: session, playback: playback, resolver: resolver)
-                    } else {
-                        HStack {
-                            TextField("Songs or artists", text: $query)
-                                .textFieldStyle(.roundedBorder)
-                                .submitLabel(.search)
-                                .onSubmit(runSearch)
-                            Button("Search", action: runSearch)
-                                .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || session.isBusy)
-                        }.padding()
-                        if session.isBusy { ProgressView().padding() }
-                        List {
+                    .padding(.horizontal, 14).frame(height: 48).background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 5)).padding(.horizontal, 16).padding(.bottom, 10)
+                    if session.isBusy { ProgressView().tint(.white).padding() }
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
                             ForEach(session.results) { track in
                                 Button { play(track) } label: {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(track.name).font(.headline)
-                                        Text(track.artist).font(.subheadline).foregroundColor(.secondary)
-                                        if !track.album.isEmpty {
-                                            Text(track.album).font(.caption).foregroundColor(.secondary)
+                                    HStack(spacing: 12) {
+                                        SpotifyArtwork(url: track.artworkURL, size: 54)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(track.name).font(.system(size: 15, weight: .semibold)).foregroundColor(.white).lineLimit(1)
+                                            Text(track.artist).font(.system(size: 13)).foregroundColor(MeloBridgeColors.secondary).lineLimit(1)
                                         }
+                                        Spacer()
+                                        Image(systemName: "ellipsis").foregroundColor(.gray)
                                     }
-                                }
-                                .disabled(isResolving)
+                                    .padding(.horizontal, 16).padding(.vertical, 6)
+                                }.buttonStyle(.plain).disabled(isResolving)
                             }
                         }
                     }
                 }
                 if isResolving { ProgressView("Finding audio…").padding() }
-                if let track = playback.currentRemote {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(track.name).font(.headline).lineLimit(1)
-                            Text("\(track.artist) · \(playback.currentProvider ?? "")")
-                                .font(.caption).foregroundColor(.secondary).lineLimit(1)
-                        }
-                        Spacer()
-                        Button(action: playback.toggle) {
-                            Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.title)
-                        }
-                    }
-                    .padding().background(.ultraThinMaterial)
-                }
             }
-            .navigationTitle("Spotify")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Sign out") {
-                        playback.stopRemote()
-                        session.signOut()
-                    }
-                    .disabled(!session.isSignedIn)
-                }
-            }
+            .background(MeloBridgeColors.background.ignoresSafeArea())
+            .navigationBarHidden(true)
             .sheet(isPresented: $showLogin) { SpotifyWebLogin(session: session) }
             .alert("Spotify", isPresented: Binding(
                 get: { (session.errorMessage != nil || playback.errorMessage != nil) && !showLogin },
@@ -126,6 +117,22 @@ struct SpotifySearchView: View {
                 if revision == session.revision { session.errorMessage = error.localizedDescription }
             }
         }
+    }
+}
+
+struct SpotifyArtwork: View {
+    let url: URL?
+    let size: CGFloat
+
+    var body: some View {
+        AsyncImage(url: url) { phase in
+            if let image = phase.image {
+                image.resizable().scaledToFill()
+            } else {
+                MeloBridgeColors.surface.overlay(Image(systemName: "music.note").foregroundColor(.gray))
+            }
+        }
+        .frame(width: size, height: size).clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
 
@@ -180,7 +187,7 @@ private struct SpotifyPlaylistsView: View {
     }
 }
 
-private struct SpotifyPlaylistDetailView: View {
+struct SpotifyPlaylistDetailView: View {
     @ObservedObject var session: SpotifySession
     @ObservedObject var playback: LocalPlayback
     let resolver: AudioSourceResolver
@@ -198,12 +205,17 @@ private struct SpotifyPlaylistDetailView: View {
             ForEach(tracks.indices, id: \.self) { index in
                 let track = tracks[index]
                 Button { play(track) } label: {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(track.name).font(.headline)
-                        Text(track.artist).font(.subheadline).foregroundColor(.secondary)
-                        if !track.album.isEmpty {
-                            Text(track.album).font(.caption).foregroundColor(.secondary)
+                    HStack(spacing: 12) {
+                        SpotifyArtwork(url: track.artworkURL, size: 52)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(track.name).font(.headline)
+                            Text(track.artist).font(.subheadline).foregroundColor(.secondary)
+                            if !track.album.isEmpty {
+                                Text(track.album).font(.caption).foregroundColor(.secondary)
+                            }
                         }
+                        Spacer()
+                        Image(systemName: "ellipsis").foregroundColor(.gray)
                     }
                 }
                 .disabled(isResolving)
@@ -223,23 +235,6 @@ private struct SpotifyPlaylistDetailView: View {
             }
         }
         .navigationTitle(playlist.name)
-        .safeAreaInset(edge: .bottom) {
-            if let current = playback.currentRemote {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(current.name).lineLimit(1)
-                        Text(playback.currentProvider ?? "")
-                            .font(.caption).foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    Button(action: playback.toggle) {
-                        Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.title)
-                    }
-                }
-                .padding().background(.ultraThinMaterial)
-            }
-        }
         .overlay { if isLoading || isResolving { ProgressView() } }
         .task { await loadTracks() }
         .alert("Playback", isPresented: Binding(

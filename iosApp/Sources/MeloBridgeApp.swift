@@ -7,14 +7,7 @@ struct MeloBridgeApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TabView {
-                SpotifySearchView(session: spotify, playback: playback)
-                    .tabItem { Label("Search", systemImage: "magnifyingglass") }
-                LibraryView(playback: playback)
-                    .tabItem { Label("Library", systemImage: "music.note.list") }
-            }
-                .preferredColorScheme(.dark)
-                .tint(Color(red: 0.12, green: 0.84, blue: 0.38))
+            MeloBridgeShell(session: spotify, playback: playback)
                 .onOpenURL { url in
                     Task { await playback.importFiles([url]) }
                 }

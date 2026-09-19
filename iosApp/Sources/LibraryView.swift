@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
 
 struct LibraryView: View {
     @ObservedObject var playback: LocalPlayback
@@ -9,16 +10,35 @@ struct LibraryView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    Circle().fill(Color.orange).frame(width: 38, height: 38)
+                        .overlay(Text("M").font(.headline).foregroundColor(.black))
+                    Text("Your Library").font(.system(size: 26, weight: .bold))
+                    Spacer()
+                    Image(systemName: "magnifyingglass").font(.system(size: 22))
+                    Button { isImporting = true } label: {
+                        Image(systemName: "plus").font(.system(size: 24))
+                    }.buttonStyle(.plain).disabled(isCopying)
+                }.padding(.horizontal, 16).padding(.top, 18).padding(.bottom, 12)
+                HStack(spacing: 8) {
+                    libraryChip("Playlists")
+                    libraryChip("Downloaded")
+                    libraryChip("Local files")
+                }
+                .padding(.horizontal, 16).frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 12)
                 if playback.tracks.isEmpty {
                     VStack(spacing: 20) {
                         Image(systemName: "music.note.list")
-                            .font(.system(size: 60)).foregroundStyle(.green)
+                            .font(.system(size: 60)).foregroundStyle(MeloBridgeColors.accent)
                         Text("Your music on iPhone and iPad")
                             .font(.title2.bold()).multilineTextAlignment(.center)
                         Text("Import an audio file from Files to start listening.")
                             .foregroundStyle(.secondary).multilineTextAlignment(.center)
                         Button("Import music") { isImporting = true }
-                            .buttonStyle(.borderedProminent).disabled(isCopying)
+                            .font(.system(size: 14, weight: .bold)).foregroundColor(.black)
+                            .padding(.horizontal, 24).frame(height: 44)
+                            .background(MeloBridgeColors.accent).clipShape(Capsule()).disabled(isCopying)
                     }
                     .padding(32).frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -28,7 +48,7 @@ struct LibraryView: View {
                                 Button { playback.play(track) } label: {
                                     HStack(spacing: 14) {
                                         Image(systemName: playback.current?.id == track.id ? "speaker.wave.2.fill" : "music.note")
-                                            .foregroundStyle(.green).frame(width: 28)
+                                            .foregroundStyle(MeloBridgeColors.accent).frame(width: 28)
                                         Text(track.name).foregroundStyle(.primary).lineLimit(2)
                                         Spacer()
                                         Image(systemName: "play.circle").foregroundStyle(.secondary)
@@ -40,42 +60,14 @@ struct LibraryView: View {
                             Text("Use the Spotify tab to search and browse playlists. Audio for those tracks is resolved through another provider.")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
-                    }.listStyle(.insetGrouped)
+                    }
+                    .listStyle(.plain)
+                    .onAppear { UITableView.appearance().backgroundColor = .clear }
                 }
                 if isCopying { ProgressView("Importing…").padding() }
-                if let track = playback.current {
-                    VStack(spacing: 12) {
-                        Text(track.name).font(.headline).lineLimit(1)
-                        Slider(
-                            value: Binding(get: { min(playback.position, max(playback.duration, 1)) }, set: playback.seek),
-                            in: 0...max(playback.duration, 1)
-                        ).disabled(playback.duration <= 0)
-                        HStack {
-                            Text(time(playback.position))
-                            Spacer()
-                            Text(time(playback.duration))
-                        }.font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                        HStack(spacing: 40) {
-                            Button(action: playback.previous) { Image(systemName: "backward.end.fill") }
-                                .accessibilityLabel("Previous")
-                            Button(action: playback.toggle) {
-                                Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 48))
-                            }.accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
-                            Button(action: playback.next) { Image(systemName: "forward.end.fill") }
-                                .accessibilityLabel("Next")
-                        }.font(.title2)
-                    }
-                    .padding().frame(maxWidth: 700).background(.ultraThinMaterial)
-                }
             }
-            .navigationTitle("MeloBridge")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button { isImporting = true } label: { Label("Import", systemImage: "plus") }
-                        .disabled(isCopying)
-                }
-            }
+            .background(MeloBridgeColors.background.ignoresSafeArea())
+            .navigationBarHidden(true)
             .fileImporter(isPresented: $isImporting, allowedContentTypes: [.audio], allowsMultipleSelection: true) { result in
                 switch result {
                 case .success(let urls):
@@ -98,8 +90,10 @@ struct LibraryView: View {
         .navigationViewStyle(.stack)
     }
 
-    private func time(_ seconds: Double) -> String {
-        let value = Int(max(0, seconds))
-        return String(format: "%d:%02d", value / 60, value % 60)
+    private func libraryChip(_ title: String) -> some View {
+        Text(title).font(.system(size: 13, weight: .medium))
+            .padding(.horizontal, 14).frame(height: 34)
+            .background(MeloBridgeColors.surface).clipShape(Capsule())
     }
+
 }

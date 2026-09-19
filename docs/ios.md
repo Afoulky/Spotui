@@ -39,6 +39,14 @@ screens have not yet been migrated to Compose Multiplatform. This shell allows
 installation and audio testing independently of that migration. The shared module
 can also be used by the future desktop application.
 
+The root iOS interface now follows Android's layout: Home, Search, and Library
+destinations; a custom bottom navigation bar; a persistent mini player; a dark
+Home feed with playlist grids and shelves; Spotify-style search results; and a
+full-screen now-playing surface. Spotify artwork is displayed when it is present
+in the metadata response. Feature parity is still incomplete, so Android-only
+screens must be migrated before every destination can contain identical data and
+actions.
+
 Validation completed so far: 3 shared-module tests and 19 existing Spotify
 module tests pass. YAML, plist, and shell script syntax have been checked.
 The iOS workflow has produced an IPA that launches on the iPhone 6s test device.
