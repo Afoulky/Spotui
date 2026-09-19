@@ -4,7 +4,7 @@
 
 MeloBridge supports Android 8.0 (API 26) and later. The application and the
 Android target of the shared module both declare `minSdk = 26`. The project
-compiles and targets API 37; those values select the build APIs and modern
+compiles and targets API 36; those values select the build APIs and modern
 platform behavior but do not change the installation minimum.
 
 Features introduced after API 26 use runtime checks. This includes Android 12
@@ -17,7 +17,7 @@ project can claim a fully tested Android 8 experience.
 
 - JDK 17
 - Android Studio or the Android command-line tools
-- Android SDK Platform 37
+- Android SDK Platform 36
 - Android SDK Platform Tools for `adb`
 
 Set `ANDROID_HOME` or add the SDK path to an untracked `local.properties` file:
@@ -65,7 +65,7 @@ git push origin all-v0.1.0-test1
 ```
 
 The workflow can also be launched manually with the `android` or `all` target.
-It installs Android SDK Platform 37, runs shared and Android unit tests, builds a
+It installs Android SDK Platform 36, runs shared and Android unit tests, builds a
 release APK, and uploads the APK and available test reports.
 
 ## Device checks
@@ -84,5 +84,5 @@ Check the following before declaring a release compatible:
 7. Spotify deep links. On Android 12 or later, check the default-link setup flow.
 
 Record the Android version, device model, build tag, and provider when reporting
-a failure. A successful API 37 CI build confirms compilation, not API 26 runtime
+a failure. A successful API 36 CI build confirms compilation, not API 26 runtime
 behavior.

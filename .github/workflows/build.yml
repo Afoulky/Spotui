@@ -70,9 +70,9 @@ jobs:
       - name: Install Android SDK platform
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-37'
+          packages: 'platform-tools platforms;android-36'
       - name: Verify Android SDK platform
-        run: test -f "$ANDROID_HOME/platforms/android-37/android.jar"
+        run: test -f "$ANDROID_HOME/platforms/android-36/android.jar"
       - name: Run Android unit tests
         run: bash gradlew :app:testDebugUnitTest --stacktrace
       - name: Build release APK

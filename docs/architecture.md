@@ -27,7 +27,7 @@ checks or platform adapters so they do not raise the installation minimum.
 
 iOS 15 is validated on an iPhone 6s. Android API 26 is the configured support
 target but still needs runtime validation on an API 26 device or emulator. CI
-compiles Android against API 37 and tests the iOS shared code on the simulator;
+compiles Android against API 36 and tests the iOS shared code on the simulator;
 those checks do not replace minimum-version device testing.
 
 ## Migration order
