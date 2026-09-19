@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import MeloBridgeShared
 
 enum MeloBridgeColors {
     static let background = Color(red: 11.0 / 255.0, green: 11.0 / 255.0, blue: 15.0 / 255.0)
@@ -7,24 +9,8 @@ enum MeloBridgeColors {
     static let secondary = Color(red: 179.0 / 255.0, green: 179.0 / 255.0, blue: 179.0 / 255.0)
 }
 
-private enum RootTab: CaseIterable, Hashable {
+private enum RootTab: String, Hashable {
     case home, search, library
-
-    var title: String {
-        switch self {
-        case .home: return "Home"
-        case .search: return "Search"
-        case .library: return "Library"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .home: return "house.fill"
-        case .search: return "magnifyingglass"
-        case .library: return "books.vertical.fill"
-        }
-    }
 }
 
 struct MeloBridgeShell: View {
@@ -59,7 +45,9 @@ struct MeloBridgeShell: View {
                     )
                     .padding(.horizontal, 13)
                 }
-                rootNavigation
+                SharedBottomNavigation(selectedTab: $selectedTab)
+                    .id(selectedTab)
+                    .frame(height: 64)
             }
             .background(
                 LinearGradient(
@@ -74,24 +62,6 @@ struct MeloBridgeShell: View {
         }
     }
 
-    private var rootNavigation: some View {
-        HStack {
-            ForEach(RootTab.allCases, id: \.self) { tab in
-                Button { selectedTab = tab } label: {
-                    VStack(spacing: 5) {
-                        Image(systemName: tab.icon).font(.system(size: 24, weight: .semibold))
-                        Text(tab.title).font(.system(size: 11, weight: .medium))
-                    }
-                    .foregroundColor(selectedTab == tab ? .white : .gray)
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(height: 70)
-        .padding(.horizontal, 22)
-    }
-
     private var playbackTitle: String? {
         playback.currentRemote?.name ?? playback.current?.name
     }
@@ -104,6 +74,22 @@ struct MeloBridgeShell: View {
         guard playback.duration > 0 else { return 0 }
         return min(max(playback.position / playback.duration, 0), 1)
     }
+}
+
+private struct SharedBottomNavigation: UIViewControllerRepresentable {
+    @Binding var selectedTab: RootTab
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        MeloBridgeUiController.shared.bottomNavigation(
+            selectedRoute: selectedTab.rawValue,
+            onTabSelected: { route in
+                guard let tab = RootTab(rawValue: route) else { return }
+                selectedTab = tab
+            }
+        )
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
 private struct MiniPlayerView: View {

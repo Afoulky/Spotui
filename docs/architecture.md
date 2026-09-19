@@ -1,22 +1,22 @@
 # Cross-platform architecture
 
-MeloBridge currently has a mature Android application and a small native iOS shell.
-Adding each feature twice would preserve the existing behavior gaps, so new work
-should move product behavior into Kotlin Multiplatform while keeping native UI and
-platform playback integrations.
+MeloBridge currently has a mature Android application and a smaller iOS client.
+Adding each feature twice would preserve the existing behavior gaps, so product
+behavior and UI are being moved into Kotlin and Compose Multiplatform. Native code
+remains responsible for playback and operating-system integrations.
 
 ## Target boundaries
 
 `shared` owns Spotify metadata, provider selection and matching, pagination,
-session-independent use cases, queue rules, and presentation state that can be
-tested without Android or iOS. Android and iOS own screens, navigation, secure
-storage, web authentication, media sessions, audio engines, and file pickers.
+session-independent use cases, presentation state, design tokens, and shared
+composables. Android and iOS provide adapters for secure storage, web
+authentication, media sessions, audio engines, and file pickers.
 
-The two clients use the same information architecture and design constants:
-Home, Search, and Library root destinations; a persistent mini player; dark
-background `#0B0B0F`; Spotify green accent `#1ED760`; and equivalent loading, empty, and error
-states. A platform may use native controls and spacing where that improves
-accessibility.
+Both clients render shared Compose components. The first migrated component is
+the Home, Search, and Library navigation bar. Screens and the mini player remain
+platform implementations until their state and actions are moved behind common
+interfaces. Shared colors include background `#0B0B0F`, surface `#2A2A2A`, brand
+accent `#618DFF`, and Spotify green `#1ED760`.
 
 ## Migration order
 
@@ -26,13 +26,15 @@ accessibility.
    tests. Keep HTTP and playback adapters platform-specific at first.
 3. Define shared screen state and actions for Search, Library, playlists, and the
    queue. Replace direct networking from SwiftUI and Android view models.
-4. Align the navigation shell, mini player, typography, colors, artwork, loading,
-   empty, and error states on both clients.
+4. Move the navigation shell, mini player, typography, colors, artwork, loading,
+   empty, and error states into shared Compose. The root navigation and colors
+   are the first completed part of this step.
 5. Migrate remaining Android-only features one vertical slice at a time. A slice
    is complete only when its shared tests and both platform clients work.
 6. Add the desktop client after shared state and provider resolution no longer
    depend on Android classes.
 
-Large Android classes should be split while their behavior is covered by tests;
-a full rewrite without those tests would make existing playback regressions hard
-to distinguish from migration regressions.
+Large Android classes are split while their behavior is covered by tests. Each
+screen switches to the common implementation only after both platform adapters
+provide the actions it needs, which keeps playback and authentication usable
+during the migration.

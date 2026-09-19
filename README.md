@@ -9,8 +9,8 @@ MeloBridge is an independent fork of [Spotui](https://github.com/H4zh4n/Spotui).
 It brings iOS support, prepares desktop support, and is not an official release
 from either Spotify or the upstream Spotui maintainers.
 
-The first milestone adds shared Kotlin models, an iOS app with local audio
-import and playback, and Android/iOS build workflows. Import, local playback,
+The first milestone adds shared Kotlin models and Compose UI foundations, an iOS
+app with local audio import and playback, and Android/iOS build workflows. Import, local playback,
 background audio, and system controls have been tested on an iPhone 6s running
 iOS 15 inside LiveContainer. Spotify sign-in and track search have also been
 tested on the device. Playlist browsing and loading more than 50 tracks have
@@ -19,9 +19,10 @@ using Spotify metadata; it awaits a remote build and device validation. The
 remaining audio providers and full library browsing are not ported yet.
 Desktop support is planned but not implemented.
 
-The next priorities are to validate provider playback on device, move provider
-selection and resolution into shared Kotlin code, port the remaining providers
-and library features, and validate the Android APK.
+The root navigation and design colors now come from Compose Multiplatform code
+used by Android and iOS. The next priorities are to migrate the mini player and
+feature screens into the same shared UI, move provider selection and resolution
+into shared Kotlin code, port the remaining providers, and validate the Android APK.
 See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
 and the current limitations.
 

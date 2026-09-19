@@ -9,10 +9,10 @@ browsing, and loading more than 50 tracks work on the test device.
 
 Implemented:
 
-- A `shared` Kotlin Multiplatform module targeting JVM, ARM64 iPhone/iPad devices,
-  and the Apple Silicon simulator. Existing Spotify models have been moved here
-  without changing their packages or serialized fields. The `spotify` module
-  re-exports them to Android through an `api` dependency.
+- A `shared` Kotlin Multiplatform module targeting Android, JVM, ARM64
+  iPhone/iPad devices, and the Apple Silicon simulator. It contains the shared
+  Spotify models and the first Compose Multiplatform design components. The
+  `spotify` module re-exports the models to existing Android code.
 - An app requiring iOS/iPadOS 15 or later: import from Files, persistent copies
   in the app's private storage, deletion, native AVPlayer playback, pause,
   seeking, and previous/next controls.
@@ -34,13 +34,14 @@ Implemented:
 - A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
   Producing this artifact requires no Apple account or credentials.
 
-The SwiftUI interface is an initial shell for validating native playback. Android
-screens have not yet been migrated to Compose Multiplatform. This shell allows
-installation and audio testing independently of that migration. The shared module
-can also be used by the future desktop application.
+The iOS feature screens remain an initial SwiftUI shell while they are migrated
+one at a time. The root navigation bar is rendered by Compose Multiplatform from
+`shared/commonMain` and is also consumed by Android. This keeps installation,
+authentication, and audio testing available throughout the migration. The same
+shared UI module can later target the desktop application.
 
 The root iOS interface now follows Android's layout: Home, Search, and Library
-destinations; a custom bottom navigation bar; a persistent mini player; a dark
+destinations; a shared Compose bottom navigation bar; a persistent mini player; a dark
 Home feed with playlist grids and shelves; Spotify-style search results; and a
 full-screen now-playing surface. Spotify artwork is displayed when it is present
 in the metadata response. Feature parity is still incomplete, so Android-only
@@ -136,7 +137,7 @@ inside LiveContainer is not a separate standalone SideStore installation.
 
 The baseline test device is an iPhone 6s running iOS 15. The app targets iOS 15.0
 and uses `NavigationView` with stack styling instead of the iOS 16-only
-`NavigationStack`. Kotlin 2.4.0 also defaults to a minimum iOS version of 15.0.
+`NavigationStack`. Kotlin 2.4.20 also defaults to a minimum iOS version of 15.0.
 The CI simulator uses a newer iOS runtime, so a successful CI build does not
 replace testing on this physical device.
 
@@ -195,11 +196,10 @@ committed. The static Kotlin framework is built by the Xcode
 `embedAndSignAppleFrameworkForXcode` phase. The unsigned build produces a
 `Payload/MeloBridge.app` package rather than an App Store/TestFlight export.
 
-The existing Android toolchain uses Kotlin 2.4.0 and Gradle 9.6.1. This Gradle
-version exceeds Kotlin 2.4.0's officially supported range (up to 9.5). It is
-retained here to avoid changing the Android toolchain at the same time. JVM tests
-provide regression coverage; the remote native build still needs validation.
-The workflow selects Xcode 26.4.
+The project uses Kotlin 2.4.20, Compose Multiplatform 1.12.0, Android Gradle
+Plugin 9.2.1, and Gradle 9.6.1. These versions are within Kotlin's documented
+compatibility ranges. JVM tests provide regression coverage; the remote native
+build still needs validation. The workflow selects Xcode 26.4.
 
 ## Next steps
 
@@ -207,8 +207,9 @@ The workflow selects Xcode 26.4.
    implementation duplicates Android's token and search protocol; move that
    protocol into shared code. Spotify's internal endpoints and WebKit login
    behavior may change.
-2. Share repositories and screen state, then migrate the remaining library browsing and
-   search presentation to Compose Multiplatform.
+2. Share repositories and screen state, then migrate Home, Search, Library, and
+   the mini player to Compose Multiplatform. Remove their SwiftUI equivalents
+   after the common screens pass device tests on both platforms.
 3. Validate Qobuz and SoundCloud resolution and playback. Move provider order,
    metadata matching, and stream resolution into `shared` so Android, iOS, and
    the future desktop app use the same rules. The existing Android providers
