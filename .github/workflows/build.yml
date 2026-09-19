@@ -1,0 +1,140 @@
+name: Build MeloBridge
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Platforms to build
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+      version:
+        description: Semantic version used by manual builds
+        required: true
+        default: 0.1.0
+        type: string
+  push:
+    tags:
+      - 'all-v*'
+      - 'android-v*'
+      - 'ios-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}-${{ inputs.target || 'tag' }}
+  cancel-in-progress: true
+
+jobs:
+  shared-tests:
+    name: Shared tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test shared models and Spotify integration
+        run: bash gradlew -PsharedOnly=true :shared:jvmTest :spotify:test --stacktrace
+
+  android:
+    name: Android APK
+    needs: shared-tests
+    if: >-
+      (github.event_name == 'workflow_dispatch' &&
+      (inputs.target == 'all' || inputs.target == 'android')) ||
+      startsWith(github.ref_name, 'all-v') ||
+      startsWith(github.ref_name, 'android-v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute build identity
+        id: build
+        env:
+          MANUAL_VERSION: ${{ inputs.version || '0.0.0' }}
+        run: bash scripts/ci-build-metadata.sh android "$MANUAL_VERSION" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install Android SDK platform
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-37'
+      - name: Verify Android SDK platform
+        run: test -f "$ANDROID_HOME/platforms/android-37/android.jar"
+      - name: Run Android unit tests
+        run: bash gradlew :app:testDebugUnitTest --stacktrace
+      - name: Build release APK
+        run: >-
+          bash gradlew :app:assembleRelease --stacktrace
+          -PmelobridgeVersionName=${{ steps.build.outputs.version }}
+          -PmelobridgeVersionCode=${{ steps.build.outputs.version_code }}
+          -PmelobridgeArtifactLabel=${{ steps.build.outputs.label }}
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeloBridge-${{ steps.build.outputs.label }}
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Android test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeloBridge-Android-test-reports-${{ github.run_number }}
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  ios:
+    name: iOS unsigned IPA
+    needs: shared-tests
+    if: >-
+      (github.event_name == 'workflow_dispatch' &&
+      (inputs.target == 'all' || inputs.target == 'ios')) ||
+      startsWith(github.ref_name, 'all-v') ||
+      startsWith(github.ref_name, 'ios-v')
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute build identity
+        id: build
+        env:
+          MANUAL_VERSION: ${{ inputs.version || '0.0.0' }}
+        run: bash scripts/ci-build-metadata.sh ios "$MANUAL_VERSION" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Test shared code on the iOS simulator
+        run: bash gradlew -PsharedOnly=true :shared:iosSimulatorArm64Test --stacktrace
+      - name: Compile and package unsigned device app
+        env:
+          MELOBRIDGE_VERSION: ${{ steps.build.outputs.version }}
+          MELOBRIDGE_BUILD_NUMBER: ${{ steps.build.outputs.build_number }}
+          MELOBRIDGE_ARTIFACT_LABEL: ${{ steps.build.outputs.label }}
+        run: bash scripts/build-ios.sh
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeloBridge-${{ steps.build.outputs.label }}
+          path: build/ios/*.ipa
+          if-no-files-found: error
+          retention-days: 14

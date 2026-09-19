@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-platform="${1:?Usage: ci-build-metadata.sh <ios|android>}"
+platform="${1:?Usage: ci-build-metadata.sh <ios|android> [manual-version]}"
+manual_version="${2:-0.0.0}"
 ref_name="${GITHUB_REF_NAME:-local}"
 ref_type="${GITHUB_REF_TYPE:-branch}"
 run_number="${GITHUB_RUN_NUMBER:-0}"
@@ -12,13 +13,17 @@ if [[ "$ref_type" == "tag" && "$ref_name" == "$platform-v"* ]]; then
     release_name="${ref_name#"$platform-v"}"
     version="${release_name%%-*}"
     label="$ref_name-$short_sha"
+elif [[ "$ref_type" == "tag" && "$ref_name" == "all-v"* ]]; then
+    release_name="${ref_name#all-v}"
+    version="${release_name%%-*}"
+    label="$platform-$ref_name-$short_sha"
 else
-    version="0.0.0"
+    version="$manual_version"
     label="$platform-manual-$run_number-$short_sha"
 fi
 
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "Invalid version '$version'. Expected a tag such as $platform-v1.2.3-test1." >&2
+    echo "Invalid version '$version'. Use semantic version X.Y.Z or a tag such as $platform-v1.2.3-test1 or all-v1.2.3-test1." >&2
     exit 1
 fi
 

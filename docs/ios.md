@@ -67,17 +67,20 @@ macOS, and Linux. GitHub runs the build on a hosted macOS runner, so you do not
 need Xcode or a local Mac to use this workflow.
 
 1. Push these changes to your GitHub repository with Actions enabled.
-2. Create a unique iOS tag on the commit you want to build, then push the tag:
+2. Create a unique iOS tag on the commit you want to build, then push that tag
+   by itself:
 
    ```sh
    git tag ios-v0.1.0-test1
    git push origin ios-v0.1.0-test1
    ```
 
-   Only tags matching `ios-v*` start this workflow; ordinary branch pushes and
-   pull requests do not. **Run workflow** in **Actions → iOS unsigned IPA** also
-   allows manual runs once the workflow is present on the default branch.
-3. Wait for both jobs to succeed. Download the artifact whose name contains the
+   An `ios-v*` tag builds only iOS. An `all-v*` tag builds iOS and Android from
+   the same commit. Ordinary branch pushes and pull requests do not create
+   release artifacts. **Run workflow** in **Actions → Build MeloBridge** also
+   provides an `all`, `android`, or `ios` target selector once the workflow is
+   present on the default branch.
+3. Wait for the shared-tests and iOS jobs to succeed. Download the artifact whose name contains the
    tag and short commit, such as **MeloBridge-ios-v0.1.0-test1-a1b2c3d**.
 4. Extract the downloaded ZIP. Its IPA has the same identifiable name with an
    `-unsigned.ipa` suffix. The installed app version comes from the numeric part

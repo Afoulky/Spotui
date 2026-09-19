@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ "$(uname -s)" != Darwin ]]; then
-    echo "iOS compilation requires macOS and Xcode. Use the 'iOS unsigned IPA' GitHub Actions workflow." >&2
+    echo "iOS compilation requires macOS and Xcode. Use the 'Build MeloBridge' GitHub Actions workflow." >&2
     exit 1
 fi
 

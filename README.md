@@ -31,24 +31,40 @@ in [NOTICE.md](NOTICE.md).
 
 ## CI builds
 
-The **Android APK** workflow runs when an `android-v*` tag is pushed, while the
-**iOS unsigned IPA** workflow runs when an `ios-v*` tag is pushed. Neither runs
-on ordinary branch pushes or pull requests. Both can also be started manually
-from the Actions tab once the workflows are present on the default branch.
+The **Build MeloBridge** workflow supports three targets:
 
-To build only one platform from a particular commit, tag that commit and push
-the tag (use a new tag name for each build):
+| Target | Tag pattern | Artifacts |
+| --- | --- | --- |
+| All platforms | `all-v*` | Android APK and unsigned iOS IPA |
+| Android only | `android-v*` | Android APK |
+| iOS only | `ios-v*` | Unsigned iOS IPA |
+
+Ordinary branch pushes and pull requests do not compile release artifacts. A
+build can also be started from **Actions → Build MeloBridge → Run workflow** by
+choosing `all`, `android`, or `ios` and entering a semantic version.
+
+Create and push one unique tag for the target you want to build:
 
 ```sh
+# Build both platforms:
+git tag all-v0.1.0-test1
+git push origin all-v0.1.0-test1
+
+# Or build only Android:
 git tag android-v0.1.0-test1
 git push origin android-v0.1.0-test1
-# Or, for iOS:
+
+# Or build only iOS:
 git tag ios-v0.1.0-test1
 git push origin ios-v0.1.0-test1
 ```
 
-The Android workflow runs unit tests and builds the release APK. Artifact and
-file names include the platform tag and short commit, for example
+Push build tags individually instead of using `git push --tags`. GitHub does not
+create tag-push events when more than three tags are sent in one operation.
+
+The workflow runs shared tests once, then starts the selected platform jobs. The
+Android job also runs Android unit tests before building the release APK. Artifact
+and file names include the target tag and short commit, for example
 **MeloBridge-android-v0.1.0-test1-a1b2c3d** and
 **MeloBridge-android-v0.1.0-test1-a1b2c3d.apk**. The version shown by the installed
 app comes from the tag; its monotonically increasing version code is derived
@@ -56,8 +72,8 @@ from the GitHub Actions run. The APK uses the
 existing shared debug signing key configured in the project; no signing secrets
 are required. Extract the downloaded artifact ZIP to install the APK.
 
-The workflows run independently; push both kinds of tag at the same commit to
-build both platforms. The first remote Android build still needs to be validated.
+Use an `all-v*` tag when both artifacts must come from exactly the same commit.
+The first remote Android build still needs to be validated.
 The cross-platform migration plan is documented in
 [docs/architecture.md](docs/architecture.md).
 
