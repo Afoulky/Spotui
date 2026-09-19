@@ -8,13 +8,14 @@ struct SpotuiApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
-                LibraryView(playback: playback)
-                    .tabItem { Label("Local", systemImage: "music.note.list") }
                 SpotifySearchView(session: spotify, playback: playback)
-                    .tabItem { Label("Spotify", systemImage: "magnifyingglass") }
+                    .tabItem { Label("Search", systemImage: "magnifyingglass") }
+                LibraryView(playback: playback)
+                    .tabItem { Label("Library", systemImage: "music.note.list") }
             }
                 .preferredColorScheme(.dark)
-                .tint(Color(red: 0.12, green: 0.84, blue: 0.38))
+                .tint(SpotuiStyle.accent)
+                .background(SpotuiStyle.background.ignoresSafeArea())
                 .onOpenURL { url in
                     Task { await playback.importFiles([url]) }
                 }

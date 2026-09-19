@@ -44,8 +44,8 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun SpotuiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Keep the product palette stable across Android, iOS, and future desktop builds.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

@@ -15,7 +15,7 @@ struct SpotifySearchView: View {
                 if !session.isSignedIn {
                     VStack(spacing: 16) {
                         Image(systemName: "magnifyingglass")
-                            .font(.system(size: 52)).foregroundColor(.green)
+                            .font(.system(size: 52)).foregroundColor(SpotuiStyle.accent)
                         Text("Search Spotify")
                             .font(.title2.bold())
                         Text("Sign in to explore tracks from your Spotify account.")
