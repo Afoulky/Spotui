@@ -201,7 +201,7 @@ committed. The static Kotlin framework is built by the Xcode
 `embedAndSignAppleFrameworkForXcode` phase. The unsigned build produces a
 `Payload/MeloBridge.app` package rather than an App Store/TestFlight export.
 
-The project uses Kotlin 2.4.20, Compose Multiplatform 1.12.0, Android Gradle
+The project uses Kotlin 2.4.20, Compose Multiplatform 1.11.1, Android Gradle
 Plugin 9.2.1, and Gradle 9.6.1. These versions are within Kotlin's documented
 compatibility ranges. JVM tests provide regression coverage; the remote native
 build still needs validation. The workflow selects Xcode 26.4.

@@ -35,15 +35,15 @@ in [NOTICE.md](NOTICE.md).
 
 | Platform | Minimum version | Validation status |
 | --- | --- | --- |
-| Android | Android 8.0 (API 26) | Configured minimum; CI builds against API 36. API 26 device testing is still required. |
+| Android | Android 6.0 (API 23) | Configured minimum; API 23 device testing is still required. |
 | iPhone and iPad | iOS/iPadOS 15.0 | Tested on an iPhone 6s running iOS 15 inside LiveContainer. |
 | Desktop | To be determined | Planned after the shared UI and playback interfaces are complete. |
 
-These are MeloBridge's application baselines, not the minimum versions supported
-by Compose Multiplatform itself. Android's `compileSdk` and `targetSdk` are 36;
-they do not change the Android 8.0 installation minimum. Platform features such
-as Android 12 Bluetooth routing and Android 13 notification permissions are
-enabled only when the operating system provides them.
+MeloBridge pins Compose Multiplatform 1.11 and compatible AndroidX releases so
+Android builds can compile and target the stable Android 16 SDK (API 36).
+Android 6.0 is the lowest version supported by this dependency set. Platform
+features such as Android 12 Bluetooth routing and Android 13 notification
+permissions are enabled only when the operating system provides them.
 
 ## CI builds
 

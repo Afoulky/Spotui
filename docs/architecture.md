@@ -20,13 +20,14 @@ accent `#618DFF`, and Spotify green `#1ED760`.
 
 ## Supported platforms
 
-The application baseline is Android 8.0 (API 26) and iOS/iPadOS 15.0. The Android
-app and the Android target of `shared` both declare API 26. The Xcode project
-declares iOS 15.0. APIs introduced after those versions must use runtime version
-checks or platform adapters so they do not raise the installation minimum.
+The application baseline is Android 6.0 (API 23) and iOS/iPadOS 15.0. The
+Android app, Innertube, and the Android target of `shared` all declare API 23.
+The Xcode project declares iOS 15.0. APIs introduced after those versions must
+use runtime version checks, desugaring, or platform adapters so they do not
+raise the installation minimum.
 
-iOS 15 is validated on an iPhone 6s. Android API 26 is the configured support
-target but still needs runtime validation on an API 26 device or emulator. CI
+iOS 15 is validated on an iPhone 6s. Android API 23 is the configured support
+target but still needs runtime validation on an API 23 device or emulator. CI
 compiles Android against API 36 and tests the iOS shared code on the simulator;
 those checks do not replace minimum-version device testing.
 

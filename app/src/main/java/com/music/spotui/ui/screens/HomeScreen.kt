@@ -1,8 +1,6 @@
 package com.music.spotui.ui.screens
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -102,7 +100,6 @@ import com.music.spotui.ui.viewmodel.PlayerViewModel
 import java.time.LocalTime
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(navController: NavController){
 
@@ -260,7 +257,6 @@ private fun onHomeItemClick(navController: NavController, item: HomeItem) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeFeedContent(
     navController: NavController,
@@ -1417,7 +1413,6 @@ private fun HomeFeedCard(item: HomeItem, onClick: () -> Unit) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SumUpHomeScreen(
     navController: NavController,
@@ -1458,7 +1453,6 @@ fun SumUpHomeScreen(
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GreetingSection(name : String = "User") {
     val currentHour = LocalTime.now().hour
@@ -1848,8 +1842,6 @@ private fun formatReleaseDate(raw: String): String {
 
     return trimmed
 }
-
-
 
 
 

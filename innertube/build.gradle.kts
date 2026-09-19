@@ -5,10 +5,10 @@ plugins {
 
 android {
     namespace = "com.metrolist.innertube"
-    compileSdk = 36
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.androidMinSdk.get().toInt()
     }
 
     compileOptions {
