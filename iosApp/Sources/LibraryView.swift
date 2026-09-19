@@ -12,7 +12,7 @@ struct LibraryView: View {
                 if playback.tracks.isEmpty {
                     VStack(spacing: 20) {
                         Image(systemName: "music.note.list")
-                            .font(.system(size: 60)).foregroundStyle(SpotuiStyle.accent)
+                            .font(.system(size: 60)).foregroundStyle(.green)
                         Text("Your music on iPhone and iPad")
                             .font(.title2.bold()).multilineTextAlignment(.center)
                         Text("Import an audio file from Files to start listening.")
@@ -28,7 +28,7 @@ struct LibraryView: View {
                                 Button { playback.play(track) } label: {
                                     HStack(spacing: 14) {
                                         Image(systemName: playback.current?.id == track.id ? "speaker.wave.2.fill" : "music.note")
-                                            .foregroundStyle(SpotuiStyle.accent).frame(width: 28)
+                                            .foregroundStyle(.green).frame(width: 28)
                                         Text(track.name).foregroundStyle(.primary).lineLimit(2)
                                         Spacer()
                                         Image(systemName: "play.circle").foregroundStyle(.secondary)

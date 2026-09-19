@@ -14,7 +14,7 @@ storage, web authentication, media sessions, audio engines, and file pickers.
 
 The two clients use the same information architecture and design constants:
 Home, Search, and Library root destinations; a persistent mini player; dark
-background `#0B0B0F`; accent `#618DFF`; and equivalent loading, empty, and error
+background `#0B0B0F`; Spotify green accent `#1ED760`; and equivalent loading, empty, and error
 states. A platform may use native controls and spacing where that improves
 accessibility.
 
