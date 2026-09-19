@@ -65,7 +65,7 @@ fun MusicPlayerController(
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
-                text = "spotui",
+                text = "MeloBridge",
                 fontSize = 10.sp
 
             )

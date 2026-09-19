@@ -1,6 +1,6 @@
-name: Spotui
+name: MeloBridge
 options:
-  bundleIdPrefix: com.music
+  bundleIdPrefix: com.afoulky
   deploymentTarget:
     iOS: "15.0"
 settings:
@@ -8,21 +8,21 @@ settings:
     SWIFT_VERSION: "5.0"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 targets:
-  Spotui:
+  MeloBridge:
     type: application
     platform: iOS
     sources:
       - Sources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.music.spotui.ios
+        PRODUCT_BUNDLE_IDENTIFIER: com.afoulky.melobridge
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Info.plist
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         FRAMEWORK_SEARCH_PATHS: "$(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
-        OTHER_LDFLAGS: "$(inherited) -framework SpotuiShared"
+        OTHER_LDFLAGS: "$(inherited) -framework MeloBridgeShared"
     preBuildScripts:
       - name: Build shared Kotlin framework
         basedOnDependencyAnalysis: false
@@ -31,10 +31,10 @@ targets:
           cd "$SRCROOT/.."
           bash ./gradlew -PsharedOnly=true :shared:embedAndSignAppleFrameworkForXcode
 schemes:
-  Spotui:
+  MeloBridge:
     build:
       targets:
-        Spotui: all
+        MeloBridge: all
     run:
       config: Debug
     archive:

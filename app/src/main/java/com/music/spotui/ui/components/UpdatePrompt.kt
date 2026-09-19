@@ -88,7 +88,7 @@ fun UpdatePrompt() {
                     RenderMarkdown(info.releaseBody)
                 } else {
                     Text(
-                        "A new version of Spotui is available.",
+                        "A new version of MeloBridge is available.",
                         color = Color(0xFFB3B3B3),
                     )
                 }

@@ -99,7 +99,7 @@
             </intent-filter>
         </service>
 
-        <!-- Makes Spotui discoverable as a media button target for automation
+        <!-- Makes MeloBridge discoverable as a media button target for automation
              apps (MacroDroid, Tasker, etc.) and forwards media key events to
              the active PlaybackService MediaSession. -->
         <receiver

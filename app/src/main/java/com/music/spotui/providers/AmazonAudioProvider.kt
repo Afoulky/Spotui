@@ -349,7 +349,7 @@ object AmazonAudioProvider {
         if (isInitialized && (now - sessionFetchedAtMs < 60 * 60 * 1000L)) return
         synchronized(initLock) {
             if (isInitialized && (now - sessionFetchedAtMs < 60 * 60 * 1000L)) return
-            deviceId = "spotui_" + java.util.UUID.randomUUID().toString().replace("-", "").take(16)
+            deviceId = "melobridge_" + java.util.UUID.randomUUID().toString().replace("-", "").take(16)
             sessionId = java.util.UUID.randomUUID().toString()
             isInitialized = true
             sessionFetchedAtMs = now

@@ -148,7 +148,7 @@ private fun sanitizeFileName(name: String): String =
 
 /**
  * Copy every downloaded track out of the app's private storage into the shared
- * **Music/spotui** folder as `Artist - Title.<ext>`, so files show up in normal
+ * **Music/MeloBridge** folder as `Artist - Title.<ext>`, so files show up in normal
  * file managers / music apps (no root needed). Uses MediaStore on API 29+.
  * Returns (exportedCount, destinationLabel).
  */
@@ -156,17 +156,17 @@ fun exportDownloads(context: Context): Pair<Int, String> {
     val entries = getDownloadedEntries(context).filter { it.second.isNotBlank() && File(it.second).exists() }
     if (entries.isEmpty()) return 0 to "No downloaded files to export"
     val count = entries.count { (song, path) -> exportFile(context, song, path) }
-    return count to "Music/spotui"
+    return count to "Music/MeloBridge"
 }
 
-/** Export a single downloaded track to public Music/spotui. Returns true on success. */
+/** Export a single downloaded track to public Music/MeloBridge. Returns true on success. */
 fun exportDownload(context: Context, song: SongsModel): Boolean {
     val path = getDownloadedEntries(context).firstOrNull { it.first.id == song.id }?.second
         ?.takeIf { it.isNotBlank() && File(it).exists() } ?: return false
     return exportFile(context, song, path)
 }
 
-/** Copy one private download file into shared Music/spotui as "Artist - Title.<ext>". */
+/** Copy one private download file into shared Music/MeloBridge as "Artist - Title.<ext>". */
 private fun exportFile(context: Context, song: SongsModel, path: String): Boolean = runCatching {
     val src = File(path)
     if (!src.exists()) return false
@@ -182,7 +182,7 @@ private fun exportFile(context: Context, song: SongsModel, path: String): Boolea
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
             put(MediaStore.MediaColumns.MIME_TYPE, mime)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_MUSIC}/spotui")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_MUSIC}/MeloBridge")
         }
         val uri = context.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
             ?: return false
@@ -191,7 +191,7 @@ private fun exportFile(context: Context, song: SongsModel, path: String): Boolea
         } ?: return false
     } else {
         val dir = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "spotui",
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "MeloBridge",
         ).apply { mkdirs() }
         src.inputStream().use { input -> File(dir, displayName).outputStream().use { input.copyTo(it) } }
     }

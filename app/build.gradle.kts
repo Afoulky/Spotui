@@ -11,11 +11,11 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.music.spotui"
+        applicationId = "com.afoulky.melobridge"
         minSdk = 26
         targetSdk = 37
-        versionCode = providers.gradleProperty("spotuiVersionCode").orNull?.toInt() ?: 202608150
-        versionName = providers.gradleProperty("spotuiVersionName").orNull ?: "1.5.0"
+        versionCode = providers.gradleProperty("melobridgeVersionCode").orNull?.toInt() ?: 202608150
+        versionName = providers.gradleProperty("melobridgeVersionName").orNull ?: "1.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -75,10 +75,10 @@ android {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
-            val artifactLabel = providers.gradleProperty("spotuiArtifactLabel").orNull
+            val artifactLabel = providers.gradleProperty("melobridgeArtifactLabel").orNull
             output.outputFileName.set(
-                artifactLabel?.let { "Spotui-$it.apk" }
-                    ?: "Spotui_v${android.defaultConfig.versionName}.apk"
+                artifactLabel?.let { "MeloBridge-$it.apk" }
+                    ?: "MeloBridge_v${android.defaultConfig.versionName}.apk"
             )
         }
     }

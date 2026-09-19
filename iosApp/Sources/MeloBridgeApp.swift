@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SpotuiApp: App {
+struct MeloBridgeApp: App {
     @StateObject private var playback = LocalPlayback()
     @StateObject private var spotify = SpotifySession()
 

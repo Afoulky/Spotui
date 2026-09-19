@@ -68,7 +68,7 @@ final class QobuzAudioProvider {
         var request = URLRequest(url: url)
         request.timeoutInterval = 15
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Spotui-iOS", forHTTPHeaderField: "User-Agent")
+        request.setValue("MeloBridge-iOS", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let response = response as? HTTPURLResponse,
               (200...299).contains(response.statusCode),

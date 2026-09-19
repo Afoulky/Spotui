@@ -69,7 +69,7 @@ struct LibraryView: View {
                     .padding().frame(maxWidth: 700).background(.ultraThinMaterial)
                 }
             }
-            .navigationTitle("Spotui")
+            .navigationTitle("MeloBridge")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { isImporting = true } label: { Label("Import", systemImage: "plus") }
@@ -87,7 +87,7 @@ struct LibraryView: View {
                 case .failure(let error): playback.errorMessage = error.localizedDescription
                 }
             }
-            .alert("Spotui", isPresented: Binding(
+            .alert("MeloBridge", isPresented: Binding(
                 get: { playback.errorMessage != nil },
                 set: { if !$0 { playback.errorMessage = nil } }
             )) {

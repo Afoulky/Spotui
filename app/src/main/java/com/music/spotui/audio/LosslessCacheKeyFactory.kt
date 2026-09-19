@@ -10,7 +10,7 @@ object LosslessCacheKeyFactory : CacheKeyFactory {
     fun buildCacheKey(spotifyTrackId: String?, url: String): String {
         val cleanId = spotifyTrackId?.removePrefix(SPOTIFY_PREFIX)?.substringBefore('|')?.trim()
         if (!cleanId.isNullOrBlank()) {
-            return "spotui-flac:$cleanId"
+            return "melobridge-flac:$cleanId"
         }
 
         val uri = Uri.parse(url)
@@ -22,12 +22,12 @@ object LosslessCacheKeyFactory : CacheKeyFactory {
                 ?: uri.getQueryParameter("id")
                 ?: uri.getQueryParameter("v")
             if (!videoId.isNullOrBlank()) {
-                return "spotui-yt:$videoId:$path"
+                return "melobridge-yt:$videoId:$path"
             }
         }
 
         val urlHash = java.util.zip.CRC32().apply { update(url.toByteArray()) }.value
-        return "spotui-raw:$urlHash"
+        return "melobridge-raw:$urlHash"
     }
 
     override fun buildCacheKey(dataSpec: DataSpec): String {

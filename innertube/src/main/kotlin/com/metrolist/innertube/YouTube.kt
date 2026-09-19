@@ -22,7 +22,7 @@ import java.net.Proxy
  * Parse useful data with [InnerTube] sending requests.
  * Modified from [ViMusic](https://github.com/vfsfitvnm/ViMusic).
  *
- * Trimmed for spotui: only the pieces the app uses survive — track search
+ * Trimmed for MeloBridge: only the pieces the app uses survive — track search
  * (to match a Spotify track to a YouTube video), the player endpoint (to
  * resolve the audio stream) and the NewPipe fallback deobfuscation.
  */

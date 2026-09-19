@@ -44,7 +44,7 @@ module tests pass. YAML, plist, and shell script syntax have been checked.
 The iOS workflow has produced an IPA that launches on the iPhone 6s test device.
 Audio file selection, import, local playback while locked, and system media
 controls work inside LiveContainer after enabling its **Fix File Picker** setting
-for Spotui. Headphone disconnection, interruption recovery, and file persistence
+for MeloBridge. Headphone disconnection, interruption recovery, and file persistence
 still need device validation. The Android workflow has not yet produced a
 validated APK.
 Spotify sign-in, track search, session restoration after relaunch, and signing
@@ -69,7 +69,7 @@ need Xcode or a local Mac to use this workflow.
    pull requests do not. **Run workflow** in **Actions → iOS unsigned IPA** also
    allows manual runs once the workflow is present on the default branch.
 3. Wait for both jobs to succeed. Download the artifact whose name contains the
-   tag and short commit, such as **Spotui-ios-v0.1.0-test1-a1b2c3d**.
+   tag and short commit, such as **MeloBridge-ios-v0.1.0-test1-a1b2c3d**.
 4. Extract the downloaded ZIP. Its IPA has the same identifiable name with an
    `-unsigned.ipa` suffix. The installed app version comes from the numeric part
    of the tag and its build number comes from the GitHub Actions run.
@@ -87,14 +87,14 @@ configured on the device. For host installation and setup, follow the
 and [SideStore documentation](https://docs.sidestore.io/docs/installation/install).
 
 1. Open LiveContainer and use its IPA import action to select
-   the downloaded **Spotui-…-unsigned.ipa** from Files.
-2. Wait for the import to finish, then launch Spotui from LiveContainer.
+   the downloaded **MeloBridge-…-unsigned.ipa** from Files.
+2. Wait for the import to finish, then launch MeloBridge from LiveContainer.
 3. Run the device checks below. Record the iOS and LiveContainer versions when
    reporting problems.
 
 If the Files picker opens but **Open** does nothing after choosing an audio file,
-return to LiveContainer, press and hold the Spotui app card, tap **Settings**,
-enable **Fix File Picker** under **Fixes**, and launch Spotui again. LiveContainer
+return to LiveContainer, press and hold the MeloBridge app card, tap **Settings**,
+enable **Fix File Picker** under **Fixes**, and launch MeloBridge again. LiveContainer
 documents this setting for guest apps whose system file picker cannot select
 files. On older LiveContainer versions, the equivalent
 setting may be named **Fix File Picker & Local Notification**. If selection still
@@ -103,25 +103,25 @@ directly with SideStore to compare behavior. The legacy option copies selected
 files into the guest app's Inbox, so check available storage before large imports.
 
 Another route to test is **Files → select an audio file → Share → LiveContainer →
-Spotui**. LiveContainer documents this as **Open In App** support. Spotui accepts
+MeloBridge**. LiveContainer documents this as **Open In App** support. MeloBridge accepts
 audio files sent through an open-document URL and copies them into its library.
 This route has not yet been verified on the test iPhone; it may vary by
 LiveContainer version and audio file type.
 
-Spotui has been tested inside LiveContainer on an iPhone 6s running iOS 15.
+MeloBridge has been tested inside LiveContainer on an iPhone 6s running iOS 15.
 File import, playback while locked, and system media controls work with
 **Fix File Picker** enabled. Headphone disconnection, interruption recovery,
 and file persistence still need device validation.
 
 If import, launch, or audio behavior fails in LiveContainer, try installing the
 same IPA directly with SideStore's IPA installation action. This signs and
-installs Spotui as a standalone app and provides a comparison outside the host.
+installs MeloBridge as a standalone app and provides a comparison outside the host.
 Keep SideStore's required pairing and VPN setup available as described in its
 documentation.
 
 With a free Apple account, refresh the apps signed through SideStore before their
 seven-day expiry. For the LiveContainer setup, keep the signed host and SideStore
-refreshed; if Spotui is installed directly, refresh it as well. An IPA imported
+refreshed; if MeloBridge is installed directly, refresh it as well. An IPA imported
 inside LiveContainer is not a separate standalone SideStore installation.
 
 ## Testing on an iPhone or iPad
@@ -136,7 +136,7 @@ replace testing on this physical device.
 2. Check play/pause, seeking, previous/next, and automatic advancement to the
    next track. An unsupported format should display an error.
 3. Lock the screen and check that audio continues and system controls work.
-   Both passed on the iPhone 6s running Spotui inside LiveContainer.
+   Both passed on the iPhone 6s running MeloBridge inside LiveContainer.
 4. Disconnect headphones: playback should pause. Also test an audio interruption
    and recovery afterward.
 5. Close and reopen the app: imported files should still be present.
@@ -185,7 +185,7 @@ require a local iOS toolchain.
 `iosApp/project.yml` is the source for the generated Xcode project, which is not
 committed. The static Kotlin framework is built by the Xcode
 `embedAndSignAppleFrameworkForXcode` phase. The unsigned build produces a
-`Payload/Spotui.app` package rather than an App Store/TestFlight export.
+`Payload/MeloBridge.app` package rather than an App Store/TestFlight export.
 
 The existing Android toolchain uses Kotlin 2.4.0 and Gradle 9.6.1. This Gradle
 version exceeds Kotlin 2.4.0's officially supported range (up to 9.5). It is

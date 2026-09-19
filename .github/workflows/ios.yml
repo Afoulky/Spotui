@@ -48,13 +48,13 @@ jobs:
         run: bash gradlew -PsharedOnly=true :shared:iosSimulatorArm64Test --stacktrace
       - name: Compile and package unsigned device app
         env:
-          SPOTUI_VERSION: ${{ steps.build.outputs.version }}
-          SPOTUI_BUILD_NUMBER: ${{ steps.build.outputs.build_number }}
-          SPOTUI_ARTIFACT_LABEL: ${{ steps.build.outputs.label }}
+          MELOBRIDGE_VERSION: ${{ steps.build.outputs.version }}
+          MELOBRIDGE_BUILD_NUMBER: ${{ steps.build.outputs.build_number }}
+          MELOBRIDGE_ARTIFACT_LABEL: ${{ steps.build.outputs.label }}
         run: bash scripts/build-ios.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: Spotui-${{ steps.build.outputs.label }}
+          name: MeloBridge-${{ steps.build.outputs.label }}
           path: build/ios/*.ipa
           if-no-files-found: error
           retention-days: 14

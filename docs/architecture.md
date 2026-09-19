@@ -1,6 +1,6 @@
 # Cross-platform architecture
 
-Spotui currently has a mature Android application and a small native iOS shell.
+MeloBridge currently has a mature Android application and a small native iOS shell.
 Adding each feature twice would preserve the existing behavior gaps, so new work
 should move product behavior into Kotlin Multiplatform while keeping native UI and
 platform playback integrations.

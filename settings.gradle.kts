@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "spotui"
+rootProject.name = "MeloBridge"
 include(":spotify")
 include(":shared")
 // iOS and shared-code checks do not require an Android SDK.

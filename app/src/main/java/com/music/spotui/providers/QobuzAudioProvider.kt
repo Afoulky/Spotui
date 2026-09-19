@@ -45,7 +45,7 @@ object QobuzAudioProvider {
 
     private const val BROWSER_USER_AGENT =
         "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36"
-    private const val DOWNLOAD_USER_AGENT = "Spotui-Android"
+    private const val DOWNLOAD_USER_AGENT = "MeloBridge-Android"
     private const val SONG_LINK_API_URL = "https://api.song.link/v1-alpha.1/links"
     private const val STREAM_CACHE_MS = 45 * 60 * 1000L
     private const val SEARCH_CACHE_MS = 10 * 60 * 1000L

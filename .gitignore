@@ -12,7 +12,7 @@ local.properties
 *.apk
 *.ipa
 **/build/
-/iosApp/Spotui.xcodeproj/
+/iosApp/MeloBridge.xcodeproj/
 /iosApp/DerivedData/
 **/xcuserdata/
 app/release/

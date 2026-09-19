@@ -47,12 +47,12 @@ object SongPlayer {
     private var wifiLock: WifiManager.WifiLock? = null
 
     @Synchronized
-    fun acquireWakeLock(context: Context, tag: String = "spotui:playback", timeoutMs: Long = 60_000L) {
+    fun acquireWakeLock(context: Context, tag: String = "melobridge:playback", timeoutMs: Long = 60_000L) {
         runCatching {
             val appContext = context.applicationContext
             if (wakeLock == null) {
                 val pm = appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
-                wakeLock = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Spotui:AudioWakeLock")?.apply {
+                wakeLock = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MeloBridge:AudioWakeLock")?.apply {
                     setReferenceCounted(false)
                 }
             }
@@ -61,7 +61,7 @@ object SongPlayer {
             if (wifiLock == null) {
                 val wm = appContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
                 @Suppress("DEPRECATION")
-                wifiLock = wm?.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Spotui:WifiLock")?.apply {
+                wifiLock = wm?.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MeloBridge:WifiLock")?.apply {
                     setReferenceCounted(false)
                 }
             }
@@ -543,11 +543,11 @@ object SongPlayer {
             }
             Log.w(TAG, "web playback on but no Spotify id for query: $song — using fallback engine")
         }
-        acquireWakeLock(appContext, "spotui:playSong", 60_000L)
+        acquireWakeLock(appContext, "melobridge:playSong", 60_000L)
         scope.launch {
             try {
                 val streamUrl = resolveStreamUrl(song, appContext, forPlayback = true) ?: run {
-                    releaseWakeLock("spotui:playSong")
+                    releaseWakeLock("melobridge:playSong")
                     // Tell the user instead of silently leaving the request on.
                     val existingError = boundState?.resolveError?.value
                     if (currentRequest == song && existingError.isNullOrBlank()) {
@@ -566,13 +566,13 @@ object SongPlayer {
                 }
                 // A newer tap superseded this one while we were resolving — drop it.
                 if (currentRequest != song) {
-                    releaseWakeLock("spotui:playSong")
+                    releaseWakeLock("melobridge:playSong")
                     updateResolveStatus(false)
                     return@launch
                 }
                 withContext(Dispatchers.Main) {
                     if (currentRequest != song) {
-                        releaseWakeLock("spotui:playSong")
+                        releaseWakeLock("melobridge:playSong")
                         updateResolveStatus(false)
                         return@withContext
                     }
@@ -590,7 +590,7 @@ object SongPlayer {
                 }
                 startPositionWatch()
             } catch (e: Exception) {
-                releaseWakeLock("spotui:playSong")
+                releaseWakeLock("melobridge:playSong")
                 Log.e(TAG, "playSong failed for query: $song", e)
                 boundState?.updateResolveError(e.message ?: "Playback failed")
                 updateResolveStatus(false)
@@ -650,12 +650,12 @@ object SongPlayer {
         // Lossless FLAC & YouTube pre-buffering uses LosslessCacheKeyFactory
         // and ResolvingDataSource to handle stream URLs seamlessly.
         scope.launch {
-            acquireWakeLock(appContext, "spotui:prefetch", 30_000L)
+            acquireWakeLock(appContext, "melobridge:prefetch", 30_000L)
             try {
                 val url = runCatching { resolveStreamUrl(song, appContext, forPlayback = false) }.getOrNull()
                 if (url != null) cacheIntro(url, appContext)
             } finally {
-                releaseWakeLock("spotui:prefetch")
+                releaseWakeLock("melobridge:prefetch")
             }
         }
     }
@@ -2195,7 +2195,7 @@ object SongPlayer {
     fun pause() {
         cancelCrossfade()
         playWhenResolved = false
-        releaseWakeLock("spotui:pause")
+        releaseWakeLock("melobridge:pause")
         if (webPlaybackActive()) { SpotifyWebPlayer.pause(); return }
         player?.let {
             it.playWhenReady = false
@@ -2209,7 +2209,7 @@ object SongPlayer {
 
     fun stop() {
         cancelCrossfade()
-        releaseWakeLock("spotui:stop")
+        releaseWakeLock("melobridge:stop")
         player?.stop()
         loadedQuery = null
         currentRequest = ""
@@ -2226,17 +2226,17 @@ object SongPlayer {
     }
 
     fun next(context: Context) {
-        acquireWakeLock(context, "spotui:next", 60_000L)
+        acquireWakeLock(context, "melobridge:next", 60_000L)
         val state = boundState
         if (state == null) {
             android.util.Log.w(TAG, "next: boundState is null")
-            releaseWakeLock("spotui:next")
+            releaseWakeLock("melobridge:next")
             return
         }
         val q = state.queue.value
         if (q.isEmpty()) {
             android.util.Log.w(TAG, "next: queue is empty")
-            releaseWakeLock("spotui:next")
+            releaseWakeLock("melobridge:next")
             return
         }
         val curId = state.songId.value
@@ -2253,7 +2253,7 @@ object SongPlayer {
                 nextIdx = 0
             } else {
                 android.util.Log.d(TAG, "next: at end, repeat off - not advancing")
-                releaseWakeLock("spotui:next")
+                releaseWakeLock("melobridge:next")
                 return
             }
         }
@@ -2267,17 +2267,17 @@ object SongPlayer {
     }
 
     fun previous(context: Context) {
-        acquireWakeLock(context, "spotui:previous", 60_000L)
+        acquireWakeLock(context, "melobridge:previous", 60_000L)
         val state = boundState
         if (state == null) {
             android.util.Log.w(TAG, "previous: boundState is null")
-            releaseWakeLock("spotui:previous")
+            releaseWakeLock("melobridge:previous")
             return
         }
         val q = state.queue.value
         if (q.isEmpty()) {
             android.util.Log.w(TAG, "previous: queue is empty")
-            releaseWakeLock("spotui:previous")
+            releaseWakeLock("melobridge:previous")
             return
         }
         val curId = state.songId.value
@@ -2294,7 +2294,7 @@ object SongPlayer {
                 nextIdx = q.size - 1
             } else {
                 android.util.Log.d(TAG, "previous: at start, repeat off - not going back")
-                releaseWakeLock("spotui:previous")
+                releaseWakeLock("melobridge:previous")
                 return
             }
         }
@@ -2316,7 +2316,7 @@ object SongPlayer {
     fun release() {
         positionWatchJob?.cancel()
         cancelCrossfade()
-        releaseWakeLock("spotui:release")
+        releaseWakeLock("melobridge:release")
         player?.release()
         player = null
         loadedQuery = null
@@ -2391,7 +2391,7 @@ object SongPlayer {
         secondaryPlayerFilter = null
         player?.volume = 1f
         isCrossfading = false
-        releaseWakeLock("spotui:crossfade")
+        releaseWakeLock("melobridge:crossfade")
     }
 
     /** (Re)start the loop that watches playback position and fires a crossfade as the
@@ -2444,12 +2444,12 @@ object SongPlayer {
         if (cur < 0 || cur >= q.size - 1) return // last track ends normally
         val nextSong = q[cur + 1]
         isCrossfading = true
-        acquireWakeLock(ctx, "spotui:crossfade", 60_000L)
+        acquireWakeLock(ctx, "melobridge:crossfade", 60_000L)
         scope.launch {
             try {
                 val nextUrl = resolveStreamUrl(nextSong.url, ctx, forPlayback = true) ?: run {
                     isCrossfading = false
-                    releaseWakeLock("spotui:crossfade")
+                    releaseWakeLock("melobridge:crossfade")
                     return@launch
                 }
                 // Effective duration: never longer than the real time left on the outgoing track.
@@ -2546,7 +2546,7 @@ object SongPlayer {
         withContext(Dispatchers.Main) {
             val incoming = secondaryPlayer ?: run {
                 isCrossfading = false
-                releaseWakeLock("spotui:crossfade")
+                releaseWakeLock("melobridge:crossfade")
                 return@withContext
             }
             val old = player
@@ -2575,7 +2575,7 @@ object SongPlayer {
             incoming.setHandleAudioBecomingNoisy(true)
             runCatching { old?.stop(); old?.release() }
             isCrossfading = false
-            releaseWakeLock("spotui:crossfade")
+            releaseWakeLock("melobridge:crossfade")
             // Re-bind the media session to the new player.
             onPlayerSwapped?.invoke(incoming)
         }

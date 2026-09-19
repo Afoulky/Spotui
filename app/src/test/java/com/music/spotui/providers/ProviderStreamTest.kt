@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.runBlocking
 
 /**
- * Diagnostic & Integration Test Suite for all Audio Providers in Spotui.
+ * Diagnostic & Integration Test Suite for all Audio Providers in MeloBridge.
  *
  * Tests resolution and streamability across 10 popular test songs for:
  * 1. Amazon Music (AmazonAudioProvider)
@@ -126,7 +126,7 @@ class ProviderStreamTest {
     @Test
     fun testAllProvidersOn10Songs() = runBlocking {
         println("\n====================================================================================================")
-        println("                           SPOTUI AUDIO PROVIDERS STREAMABILITY TEST")
+        println("                           MELOBRIDGE AUDIO PROVIDERS STREAMABILITY TEST")
         println("====================================================================================================\n")
 
         val providerStats = mutableMapOf<String, Pair<Int, Int>>() // Provider -> (Resolved, Streamable)

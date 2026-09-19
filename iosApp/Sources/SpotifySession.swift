@@ -48,7 +48,7 @@ final class SpotifySession: ObservableObject {
     @Published var errorMessage: String?
     var revision: Int { sessionGeneration }
 
-    private static let keychainService = "com.music.spotui.ios.spotify"
+    private static let keychainService = "com.afoulky.melobridge.spotify"
     private static let searchHash = "4801118d4a100f756e833d33984436a3899cff359c532f8fd3aaf174b60b3b49"
     private static let libraryHash = "973e511ca44261fda7eebac8b653155e7caee3675abb4fb110cc1b8c78b091c3"
     private static let playlistHash = "346811f856fb0b7e4f6c59f8ebea78dd081c6e2fb01b77c954b26259d5fc6763"

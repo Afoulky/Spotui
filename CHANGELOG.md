@@ -1,7 +1,7 @@
-# Spotui: Fork Features & Differences
+# MeloBridge: Fork Features & Differences
 
 This document outlines the custom features, improvements, and differences introduced in this fork
-compared to the main Spotui repository.
+compared to the upstream Spotui repository.
 
 ---
 

@@ -89,7 +89,7 @@ class PlaybackService : MediaLibraryService() {
                     // The crossfade routine itself handles the transition and promotes the new player.
                     return
                 }
-                SongPlayer.acquireWakeLock(applicationContext, "spotui:advance", 60_000L)
+                SongPlayer.acquireWakeLock(applicationContext, "melobridge:advance", 60_000L)
                 when (currentSongState.repeat.value) {
                     RepeatMode.ONE -> {
                         val p = SongPlayer.exoPlayer
@@ -107,7 +107,7 @@ class PlaybackService : MediaLibraryService() {
                                 val song = queue[cur]
                                 SongPlayer.playSong(song.url, applicationContext, "song/${song.id}")
                             } else {
-                                SongPlayer.releaseWakeLock("spotui:advance")
+                                SongPlayer.releaseWakeLock("melobridge:advance")
                             }
                         }
                     }
@@ -127,10 +127,10 @@ class PlaybackService : MediaLibraryService() {
                             if (cur < queue.size - 1) {
                                 advance(forward = true)
                             } else {
-                                SongPlayer.releaseWakeLock("spotui:advance")
+                                SongPlayer.releaseWakeLock("melobridge:advance")
                             }
                         } else {
-                            SongPlayer.releaseWakeLock("spotui:advance")
+                            SongPlayer.releaseWakeLock("melobridge:advance")
                         }
                     }
                 }
@@ -154,7 +154,7 @@ class PlaybackService : MediaLibraryService() {
                 "Player error during playback: ${error.message}",
                 error
             )
-            SongPlayer.acquireWakeLock(applicationContext, "spotui:error_advance", 60_000L)
+            SongPlayer.acquireWakeLock(applicationContext, "melobridge:error_advance", 60_000L)
             val queue = currentSongState.queue.value
             val curId = currentSongState.songId.value
             val cur = queue.indexOfFirst { it.id == curId }
@@ -172,7 +172,7 @@ class PlaybackService : MediaLibraryService() {
         // Order notification buttons: [repeat | prev | play/pause | next | close]
         val notificationProvider = object : DefaultMediaNotificationProvider(this) {
             init {
-                setSmallIcon(R.drawable.ic_spotui_notification)
+                setSmallIcon(R.drawable.ic_melobridge_notification)
             }
 
             override fun getMediaButtons(
@@ -388,7 +388,7 @@ class PlaybackService : MediaLibraryService() {
                 }
                 currentSongState.updateRepeatState(mode)
                 // Always ensure the underlying ExoPlayer repeatMode stays REPEAT_MODE_OFF.
-                // Spotui manages single-track / all-track looping at the queue & PlaybackService level.
+                // MeloBridge manages single-track / all-track looping at the queue & PlaybackService level.
                 // If ExoPlayer itself is set to REPEAT_MODE_ONE or REPEAT_MODE_ALL on a single-item
                 // timeline, ExoPlayer silently loops the single item internally and NEVER emits STATE_ENDED.
                 base.repeatMode = Player.REPEAT_MODE_OFF
@@ -572,7 +572,7 @@ class PlaybackService : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             params: LibraryParams?,
         ): ListenableFuture<LibraryResult<MediaItem>> =
-            Futures.immediateFuture(LibraryResult.ofItem(folder(ROOT, "spotui"), params))
+            Futures.immediateFuture(LibraryResult.ofItem(folder(ROOT, "melobridge"), params))
 
         override fun onGetChildren(
             session: MediaLibrarySession,

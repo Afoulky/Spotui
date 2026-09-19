@@ -1,12 +1,13 @@
-# Spotui [![Downloads](https://img.shields.io/github/downloads/H4zh4n/Spotui/total?style=for-the-badge&labelColor=0d1117)](https://github.com/H4zh4n/Spotui/releases)
+# MeloBridge
 
-A Spotify clone for Android, built with Jetpack Compose.
+A cross-platform music client that uses Spotify metadata and resolves playback
+through configurable audio providers.
 
 ## About this fork
 
-This is an independent fork of [Spotui](https://github.com/H4zh4n/Spotui),
-bringing iOS support and preparing desktop support while retaining the Spotui name.
-It is not an official release from the upstream maintainers.
+MeloBridge is an independent fork of [Spotui](https://github.com/H4zh4n/Spotui).
+It brings iOS support, prepares desktop support, and is not an official release
+from either Spotify or the upstream Spotui maintainers.
 
 The first milestone adds shared Kotlin models, an iOS app with local audio
 import and playback, and Android/iOS build workflows. Import, local playback,
@@ -24,8 +25,8 @@ and library features, and validate the Android APK.
 See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
 and the current limitations.
 
-The project retains its [GNU GPL v3 license](LICENSE) and upstream credits.
-The download badge above links to upstream releases, not builds of this fork.
+The project retains its [GNU GPL v3 license](LICENSE) and documents its origin
+in [NOTICE.md](NOTICE.md).
 
 ## CI builds
 
@@ -47,8 +48,8 @@ git push origin ios-v0.1.0-test1
 
 The Android workflow runs unit tests and builds the release APK. Artifact and
 file names include the platform tag and short commit, for example
-**Spotui-android-v0.1.0-test1-a1b2c3d** and
-**Spotui-android-v0.1.0-test1-a1b2c3d.apk**. The version shown by the installed
+**MeloBridge-android-v0.1.0-test1-a1b2c3d** and
+**MeloBridge-android-v0.1.0-test1-a1b2c3d.apk**. The version shown by the installed
 app comes from the tag; its monotonically increasing version code is derived
 from the GitHub Actions run. The APK uses the
 existing shared debug signing key configured in the project; no signing secrets
@@ -86,7 +87,7 @@ It connects to your real Spotify account and mirrors the Spotify experience.
 
 ## Credits
 
-spotui builds on the work of several open-source projects:
+MeloBridge builds on the work of several open-source projects:
 
 - [Meld](https://github.com/) — Spotify metadata + YouTube streaming layer
 - [Neptune](https://github.com/navneet851/spotify-clone-jetpack-compose) — the original Jetpack Compose Spotify clone this app started from

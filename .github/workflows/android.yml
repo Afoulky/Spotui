@@ -37,13 +37,13 @@ jobs:
       - name: Build release APK
         run: >-
           bash gradlew :app:assembleRelease --stacktrace
-          -PspotuiVersionName=${{ steps.build.outputs.version }}
-          -PspotuiVersionCode=${{ steps.build.outputs.version_code }}
-          -PspotuiArtifactLabel=${{ steps.build.outputs.label }}
+          -PmelobridgeVersionName=${{ steps.build.outputs.version }}
+          -PmelobridgeVersionCode=${{ steps.build.outputs.version_code }}
+          -PmelobridgeArtifactLabel=${{ steps.build.outputs.label }}
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Spotui-${{ steps.build.outputs.label }}
+          name: MeloBridge-${{ steps.build.outputs.label }}
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
@@ -51,7 +51,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: Spotui-Android-test-reports
+          name: MeloBridge-Android-test-reports
           path: |
             app/build/reports/tests/
             shared/build/reports/tests/

@@ -310,7 +310,7 @@ fun SettingsScreen(navController: NavController) {
                     .clip(RoundedCornerShape(10.dp))
                     .clickable {
                         if (isDefaultLinkHandler) {
-                            DefaultLinkHelper.openSpotuiDefaultSettings(context)
+                            DefaultLinkHelper.openMeloBridgeDefaultSettings(context)
                         } else {
                             showDefaultGuide = true
                         }
@@ -322,7 +322,7 @@ fun SettingsScreen(navController: NavController) {
                 Column(Modifier.weight(1f)) {
                     Text("Open Spotify links by default", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     Text(
-                        if (isDefaultLinkHandler) "Spotui handles Spotify URLs by default" else "Not default — tap to open setup guide",
+                        if (isDefaultLinkHandler) "MeloBridge handles Spotify URLs by default" else "Not default — tap to open setup guide",
                         color = if (isDefaultLinkHandler) Color(0xFF81C784) else Color(0xFFB3B3B3),
                         fontSize = 12.sp,
                     )
@@ -719,7 +719,7 @@ fun SettingsScreen(navController: NavController) {
                 Column(Modifier.weight(1f)) {
                     Text("Restore from File", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     Text(
-                        if (isRestoring) "Restoring backup in background…" else "Import playlists and settings from a Spotui backup file",
+                        if (isRestoring) "Restoring backup in background…" else "Import playlists and settings from a MeloBridge backup file",
                         color = Color(0xFFB3B3B3),
                         fontSize = 12.sp,
                     )
@@ -836,7 +836,7 @@ fun SettingsScreen(navController: NavController) {
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
-                        uriHandler.openUri("https://github.com/H4zh4n/Spotui/")
+                        uriHandler.openUri("https://github.com/Afoulky/MeloBridge/")
                     }
                 )
             }

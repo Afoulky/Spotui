@@ -1,9 +1,9 @@
 import AVFoundation
 import Combine
 import MediaPlayer
-import SpotuiShared
+import MeloBridgeShared
 
-/// App-scoped native audio adapter, owned by SpotuiApp.
+/// App-scoped native audio adapter, owned by MeloBridgeApp.
 /// Track metadata uses the same Kotlin model as the Android application.
 @MainActor
 final class LocalPlayback: ObservableObject {

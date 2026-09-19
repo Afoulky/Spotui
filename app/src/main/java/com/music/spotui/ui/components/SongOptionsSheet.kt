@@ -208,7 +208,7 @@ fun SongOptionsSheet(
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             android.widget.Toast.makeText(
                                 app,
-                                if (ok) "Saved to Music/spotui" else "Export failed",
+                                if (ok) "Saved to Music/MeloBridge" else "Export failed",
                                 android.widget.Toast.LENGTH_SHORT,
                             ).show()
                         }

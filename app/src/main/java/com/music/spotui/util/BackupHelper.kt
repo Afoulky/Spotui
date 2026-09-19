@@ -40,13 +40,13 @@ import java.util.Locale
 
 object BackupHelper {
     private const val TAG = "BackupHelper"
-    private const val AUTO_BACKUP_FILENAME = "spotui_autobackup.json"
+    private const val AUTO_BACKUP_FILENAME = "melobridge_autobackup.json"
 
     fun createBackupJson(context: Context): String {
         val root = JSONObject().apply {
-            put("app", "spotui")
+            put("app", "melobridge")
             put("version", 1)
-            put("type", "spotui_backup")
+            put("type", "melobridge_backup")
             put("timestamp", System.currentTimeMillis())
 
             val data = JSONObject().apply {
@@ -104,7 +104,7 @@ object BackupHelper {
     }
 
     /**
-     * Validates if [jsonString] is a genuine Spotui backup file.
+     * Validates if [jsonString] is a genuine MeloBridge backup file.
      * Returns the root [JSONObject] if valid, or null if invalid.
      */
     fun validateBackupJson(jsonString: String): JSONObject? {
@@ -113,7 +113,10 @@ object BackupHelper {
             val app = root.optString("app")
             val type = root.optString("type")
             val version = root.optInt("version", -1)
-            if (app == "spotui" && type == "spotui_backup" && version >= 1 && root.has("data")) {
+            val recognizedFormat =
+                (app == "melobridge" && type == "melobridge_backup") ||
+                    (app == "spotui" && type == "spotui_backup")
+            if (recognizedFormat && version >= 1 && root.has("data")) {
                 root
             } else {
                 null
@@ -165,7 +168,7 @@ object BackupHelper {
             return@withContext Pair(false, "Please select a backup folder first")
         }
         val timestampStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val filename = "spotui_backup_$timestampStr.json"
+        val filename = "melobridge_backup_$timestampStr.json"
         val json = createBackupJson(context)
 
         val successManual = writeBackupToDirectory(context, filename, json)
@@ -191,7 +194,7 @@ object BackupHelper {
         }
 
         val root = validateBackupJson(jsonString)
-            ?: return@withContext Pair(false, "Invalid backup file: Not a valid Spotui backup")
+            ?: return@withContext Pair(false, "Invalid backup file: Not a valid MeloBridge backup")
 
         runCatching {
             val data = root.getJSONObject("data")
