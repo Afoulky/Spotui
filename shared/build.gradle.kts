@@ -9,8 +9,8 @@ plugins {
 kotlin {
     android {
         namespace = "com.afoulky.melobridge.shared"
-        compileSdk = 37
-        minSdk = 26
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }

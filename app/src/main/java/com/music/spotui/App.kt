@@ -1,8 +1,6 @@
 package com.music.spotui
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -21,7 +19,6 @@ import com.music.spotui.ui.navigation.MyNavHost
 import com.music.spotui.ui.navigation.Routes
 
 
-@RequiresApi(Build.VERSION_CODES.S)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun App() {
@@ -92,5 +89,4 @@ fun App() {
         MyNavHost(navHostController = navController, searchFocusTrigger = searchFocusTrigger)
     }
 }
-
 

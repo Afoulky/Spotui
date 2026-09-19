@@ -194,7 +194,7 @@ compared to the upstream Spotui repository.
 ### ⚙️ Under the Hood
 
 * **Persistent Queue:** Restores the full playback session across app restarts.
-* **Modern Build:** Upgraded to SDK 37, Gradle 9.6.1, and Kotlin 2.4.0.
+* **Modern Build:** Upgraded to SDK 37, Gradle 9.6.1, and Kotlin 2.4.20.
 * **Codebase Cleanup:** Resolved Kotlin warnings and removed deprecated Media3 calls.
 
 ---

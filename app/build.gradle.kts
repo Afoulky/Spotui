@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.music.spotui"
-    compileSdk = 37
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.afoulky.melobridge"
-        minSdk = 26
-        targetSdk = 37
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+        targetSdk = libs.versions.androidTargetSdk.get().toInt()
         versionCode = providers.gradleProperty("melobridgeVersionCode").orNull?.toInt() ?: 202608150
         versionName = providers.gradleProperty("melobridgeVersionName").orNull ?: "1.5.0"
 

@@ -1,5 +1,8 @@
 [versions]
 kotlin = "2.4.20"
+androidMinSdk = "26"
+androidCompileSdk = "37"
+androidTargetSdk = "37"
 ktor = "3.5.1"
 brotli = "0.1.2"
 desugaring = "2.1.5"

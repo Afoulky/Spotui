@@ -10,24 +10,40 @@ It brings iOS support, prepares desktop support, and is not an official release
 from either Spotify or the upstream Spotui maintainers.
 
 The first milestone adds shared Kotlin models and Compose UI foundations, an iOS
-app with local audio import and playback, and Android/iOS build workflows. Import, local playback,
-background audio, and system controls have been tested on an iPhone 6s running
+app with local audio import and playback, and Android/iOS build workflows. Import,
+local playback, background audio, and system controls have been tested on an iPhone 6s running
 iOS 15 inside LiveContainer. Spotify sign-in and track search have also been
 tested on the device. Playlist browsing and loading more than 50 tracks have
-also been tested. The iOS playback path now tries Qobuz and then SoundCloud
-using Spotify metadata; it awaits a remote build and device validation. The
+also been tested. The iOS playback path now tries Qobuz and then SoundCloud using
+Spotify metadata; the latest resolver changes still need device validation. The
 remaining audio providers and full library browsing are not ported yet.
 Desktop support is planned but not implemented.
 
 The root navigation and design colors now come from Compose Multiplatform code
 used by Android and iOS. The next priorities are to migrate the mini player and
 feature screens into the same shared UI, move provider selection and resolution
-into shared Kotlin code, port the remaining providers, and validate the Android APK.
-See the [iOS build and SideStore/LiveContainer guide](docs/ios.md) for the unsigned IPA workflow
-and the current limitations.
+into shared Kotlin code, port the remaining providers, and validate the Android
+APK.
+See the [Android development guide](docs/android.md) and the
+[iOS build and SideStore/LiveContainer guide](docs/ios.md) for platform setup,
+testing, and current limitations.
 
 The project retains its [GNU GPL v3 license](LICENSE) and documents its origin
 in [NOTICE.md](NOTICE.md).
+
+## Platform support
+
+| Platform | Minimum version | Validation status |
+| --- | --- | --- |
+| Android | Android 8.0 (API 26) | Configured minimum; CI builds against API 37. API 26 device testing is still required. |
+| iPhone and iPad | iOS/iPadOS 15.0 | Tested on an iPhone 6s running iOS 15 inside LiveContainer. |
+| Desktop | To be determined | Planned after the shared UI and playback interfaces are complete. |
+
+These are MeloBridge's application baselines, not the minimum versions supported
+by Compose Multiplatform itself. Android's `compileSdk` and `targetSdk` are 37;
+they do not change the Android 8.0 installation minimum. Platform features such
+as Android 12 Bluetooth routing and Android 13 notification permissions are
+enabled only when the operating system provides them.
 
 ## CI builds
 
@@ -106,7 +122,7 @@ It connects to your real Spotify account and mirrors the Spotify experience.
 
 MeloBridge builds on the work of several open-source projects:
 
-- [Meld](https://github.com/) — Spotify metadata + YouTube streaming layer
+- [Meld](https://github.com/FrancescoGrazioso/Meld) — Spotify metadata + YouTube streaming layer
 - [Neptune](https://github.com/navneet851/spotify-clone-jetpack-compose) — the original Jetpack Compose Spotify clone this app started from
 - [SpotiFLAC](https://github.com/spotbye/SpotiFLAC) — lossless (FLAC) track resolving
 - [SimpMusic](https://github.com/maxrave-dev/SimpMusic) — crossfade / DJ-style audio filter processing

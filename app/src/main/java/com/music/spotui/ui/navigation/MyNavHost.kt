@@ -1,8 +1,6 @@
 package com.music.spotui.ui.navigation
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -41,7 +39,6 @@ import com.music.spotui.ui.screens.LocalFilesScreen
 import com.music.spotui.ui.screens.SpotiflacVerifyScreen
 import com.music.spotui.ui.viewmodel.PlayerViewModel
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun MyNavHost(
     navHostController: NavHostController,

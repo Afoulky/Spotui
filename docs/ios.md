@@ -31,7 +31,7 @@ Implemented:
   resolved Qobuz URL later fails inside AVPlayer.
 - Background audio configuration, lock-screen controls, audio interruption
   handling, and pausing when headphones disconnect. These require device testing.
-- A macOS workflow that tests shared code and builds an unsigned ARM64 IPA.
+- A macOS CI job that tests shared code and builds an unsigned ARM64 IPA.
   Producing this artifact requires no Apple account or credentials.
 
 The iOS feature screens remain an initial SwiftUI shell while they are migrated
@@ -48,13 +48,13 @@ in the metadata response. Feature parity is still incomplete, so Android-only
 screens must be migrated before every destination can contain identical data and
 actions.
 
-Validation completed so far: 3 shared-module tests and 19 existing Spotify
+Validation completed so far: 4 shared-module tests and 19 existing Spotify
 module tests pass. YAML, plist, and shell script syntax have been checked.
-The iOS workflow has produced an IPA that launches on the iPhone 6s test device.
+The iOS job has produced an IPA that launches on the iPhone 6s test device.
 Audio file selection, import, local playback while locked, and system media
 controls work inside LiveContainer after enabling its **Fix File Picker** setting
 for MeloBridge. Headphone disconnection, interruption recovery, and file persistence
-still need device validation. The Android workflow has not yet produced a
+still need device validation. The Android job has not yet produced a
 validated APK.
 Spotify sign-in, track search, session restoration after relaunch, and signing
 out have been tested on the iPhone. The isolated temporary web login has also
@@ -138,9 +138,11 @@ inside LiveContainer is not a separate standalone SideStore installation.
 
 ## Testing on an iPhone or iPad
 
-The baseline test device is an iPhone 6s running iOS 15. The app targets iOS 15.0
-and uses `NavigationView` with stack styling instead of the iOS 16-only
-`NavigationStack`. Kotlin 2.4.20 also defaults to a minimum iOS version of 15.0.
+The minimum supported version is iOS/iPadOS 15.0. The baseline test device is an
+iPhone 6s running iOS 15. The app uses `NavigationView` with stack styling instead
+of the iOS 16-only `NavigationStack`. Compose Multiplatform itself supports older
+iOS versions, but MeloBridge deliberately starts at iOS 15 because that is the
+oldest version covered by its current SwiftUI shell and physical-device tests.
 The CI simulator uses a newer iOS runtime, so a successful CI build does not
 replace testing on this physical device.
 
@@ -225,7 +227,7 @@ build still needs validation. The workflow selects Xcode 26.4.
 
 - [Kotlin/Xcode integration](https://kotlinlang.org/docs/multiplatform-direct-integration.html)
 - [Kotlin Multiplatform tool compatibility](https://kotlinlang.org/docs/multiplatform/multiplatform-compatibility-guide.html)
-- [Kotlin 2.4.0 Apple deployment targets](https://kotlinlang.org/docs/whatsnew24.html#changes-to-apple-target-support)
+- [Compose Multiplatform compatibility](https://kotlinlang.org/docs/multiplatform/compose-compatibility-and-versioning.html)
 - [XcodeGen configuration](https://github.com/yonaskolb/XcodeGen/blob/master/Docs/ProjectSpec.md)
 - [Apple accounts and Personal Team limitations](https://developer.apple.com/help/account/basics/about-your-developer-account)
 - [LiveContainer installation](https://livecontainer.github.io/docs/installation)

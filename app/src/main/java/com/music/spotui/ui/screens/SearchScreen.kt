@@ -1,7 +1,5 @@
 package com.music.spotui.ui.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -83,7 +81,6 @@ import com.music.spotui.ui.viewmodel.PlayerViewModel
 import com.music.spotui.ui.viewmodel.SearchViewModel
 
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun SearchScreen(navController: NavController, searchFocusTrigger: Int = 0) {
     val searchViewModel: SearchViewModel = hiltViewModel()
@@ -107,7 +104,6 @@ fun SearchScreen(navController: NavController, searchFocusTrigger: Int = 0) {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun SumUpSearchScreen(
@@ -528,7 +524,6 @@ fun RecentItemRow(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun SearchSongRow(
@@ -911,7 +906,6 @@ fun SearchTopBar() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun SearchStickyBar(
     text: String,

@@ -18,6 +18,18 @@ platform implementations until their state and actions are moved behind common
 interfaces. Shared colors include background `#0B0B0F`, surface `#2A2A2A`, brand
 accent `#618DFF`, and Spotify green `#1ED760`.
 
+## Supported platforms
+
+The application baseline is Android 8.0 (API 26) and iOS/iPadOS 15.0. The Android
+app and the Android target of `shared` both declare API 26. The Xcode project
+declares iOS 15.0. APIs introduced after those versions must use runtime version
+checks or platform adapters so they do not raise the installation minimum.
+
+iOS 15 is validated on an iPhone 6s. Android API 26 is the configured support
+target but still needs runtime validation on an API 26 device or emulator. CI
+compiles Android against API 37 and tests the iOS shared code on the simulator;
+those checks do not replace minimum-version device testing.
+
 ## Migration order
 
 1. Stabilize builds and diagnostics. Every artifact carries its platform, tag or
