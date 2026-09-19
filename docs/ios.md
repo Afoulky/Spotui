@@ -68,8 +68,11 @@ need Xcode or a local Mac to use this workflow.
    Only tags matching `ios-v*` start this workflow; ordinary branch pushes and
    pull requests do not. **Run workflow** in **Actions → iOS unsigned IPA** also
    allows manual runs once the workflow is present on the default branch.
-3. Wait for both jobs to succeed. Download the **Spotui-iOS-unsigned** artifact.
-4. Extract the downloaded ZIP to obtain **Spotui-unsigned.ipa**.
+3. Wait for both jobs to succeed. Download the artifact whose name contains the
+   tag and short commit, such as **Spotui-ios-v0.1.0-test1-a1b2c3d**.
+4. Extract the downloaded ZIP. Its IPA has the same identifiable name with an
+   `-unsigned.ipa` suffix. The installed app version comes from the numeric part
+   of the tag and its build number comes from the GitHub Actions run.
 5. Save the IPA in Files on your test iPhone or iPad, then follow the
    LiveContainer instructions below.
 
@@ -84,7 +87,7 @@ configured on the device. For host installation and setup, follow the
 and [SideStore documentation](https://docs.sidestore.io/docs/installation/install).
 
 1. Open LiveContainer and use its IPA import action to select
-   **Spotui-unsigned.ipa** from Files.
+   the downloaded **Spotui-…-unsigned.ipa** from Files.
 2. Wait for the import to finish, then launch Spotui from LiveContainer.
 3. Run the device checks below. Record the iOS and LiveContainer versions when
    reporting problems.

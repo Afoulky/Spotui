@@ -45,13 +45,19 @@ git tag ios-v0.1.0-test1
 git push origin ios-v0.1.0-test1
 ```
 
-The Android workflow runs unit tests and builds the release APK,
-available in the **Spotui-Android-APK** artifact for 14 days. The APK uses the
+The Android workflow runs unit tests and builds the release APK. Artifact and
+file names include the platform tag and short commit, for example
+**Spotui-android-v0.1.0-test1-a1b2c3d** and
+**Spotui-android-v0.1.0-test1-a1b2c3d.apk**. The version shown by the installed
+app comes from the tag; its monotonically increasing version code is derived
+from the GitHub Actions run. The APK uses the
 existing shared debug signing key configured in the project; no signing secrets
 are required. Extract the downloaded artifact ZIP to install the APK.
 
 The workflows run independently; push both kinds of tag at the same commit to
 build both platforms. The first remote Android build still needs to be validated.
+The cross-platform migration plan is documented in
+[docs/architecture.md](docs/architecture.md).
 
 ## 💖 Support the upstream project
 

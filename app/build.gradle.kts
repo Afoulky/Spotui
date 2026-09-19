@@ -14,8 +14,8 @@ android {
         applicationId = "com.music.spotui"
         minSdk = 26
         targetSdk = 37
-        versionCode = 202608150
-        versionName = "1.5.0"
+        versionCode = providers.gradleProperty("spotuiVersionCode").orNull?.toInt() ?: 202608150
+        versionName = providers.gradleProperty("spotuiVersionName").orNull ?: "1.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -75,7 +75,11 @@ android {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set("Spotui_v${android.defaultConfig.versionName}.apk")
+            val artifactLabel = providers.gradleProperty("spotuiArtifactLabel").orNull
+            output.outputFileName.set(
+                artifactLabel?.let { "Spotui-$it.apk" }
+                    ?: "Spotui_v${android.defaultConfig.versionName}.apk"
+            )
         }
     }
 }
